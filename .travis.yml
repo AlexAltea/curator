@@ -1,0 +1,19 @@
+language: python
+
+notifications:
+  email: false
+
+python:
+  - 3.7
+
+install:
+  - pip install coveralls
+  - pip install .
+
+script:
+  - python test.py
+  - python setup.py check --strict --metadata
+  - coverage run --source=curator test.py
+
+after_success:
+  - coveralls

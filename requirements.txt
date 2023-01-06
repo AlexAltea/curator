@@ -1,0 +1,3 @@
+chardet==3.0.4
+langid==1.1.6
+pysrt==1.1.2
