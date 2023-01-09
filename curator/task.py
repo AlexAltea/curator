@@ -9,4 +9,5 @@ class Task:
         self.inputs = inputs
         self.outputs = outputs
         self.enabled = True
+        self.warning = None
         self.id = None

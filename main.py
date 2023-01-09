@@ -52,12 +52,12 @@ The following commands are supported:
 def curator_merge(argv):
     parser = curator_argparser()
     parser.add_argument('-d', '--delete', action='store_true', help='delete inputs after merging')
-    parser.add_argument('-o', '--output', choices=['mkv'], default='mkv')
+    parser.add_argument('-f', '--format', choices=['mkv'], default='mkv')
     args = parser.parse_args(argv)
 
     from curator.plans import plan_merge
     media = curator.media_input(args.input, recursive=args.r)
-    plan = plan_merge(media, args.output, args.delete)
+    plan = plan_merge(media, args.format, args.delete)
     curator_handle_plan(plan, args)
 
 def curator_rename(argv):

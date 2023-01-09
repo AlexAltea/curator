@@ -14,21 +14,19 @@ from .media import *
 from .tui import *
 
 class Plan:
-    def __init__(self, tasks=[]):
-        self.tasks = tasks
+    def __init__(self):
+        self.tasks = []
+        self.last_id = 0
+
+    def add_task(self, task):
+        self.last_id += 1
+        self.tasks.append(task)
+        task.id = self.last_id
 
     def apply(self):
         for task in self.tasks:
-            self.handle_task(task)
-
-    def add_task(self, task):
-        self.tasks.append(task)
-
-    def get_cols(self):
-        return self.cols
-
-    def get_rows(self):
-        return
+            if task.enabled:
+                task.apply()
 
     def show(self):
         thead, tbody = self.show_tasks()
@@ -36,51 +34,3 @@ class Plan:
 
     def edit(self):
         return
-
-class Task:
-    def __init__(self, inputs=[], outputs=[]):
-        self.inputs = inputs
-        self.outputs = outputs
-        self.enabled = True
-        self.id = None
-
-# Plans
-
-
-
-class RenamePlan(Plan):
-    def handle_task(self, task):
-        media, name = task
-        src = media.path
-        dst = os.path.join(media.dir, name)
-        os.rename(src, dst)
-
-    def show_tasks(self):
-        thead = ("Old", "→", "New")
-        tbody = []
-        for task in self.tasks:
-            media, name = task
-            tbody.append((media.name, "→", name))
-        return thead, tbody
-
-def plan_rename(media, format):
-    plan = RenamePlan()
-    for m in media:
-        filename = format
-        if '@name' in format:
-            name = detect_name(m.name)
-            if name is None:
-                logging.warning(f"Could not rename: {m.name} (name not detected)")
-                continue
-            filename = filename.replace('@name', str(name))
-        if '@year' in format:
-            year = detect_year(m.name)
-            if year is None:
-                logging.warning(f"Could not rename: {m.name} (year not detected)")
-                continue
-            filename = filename.replace('@year', str(year))
-        if '@ext' in format:
-            filename = filename.replace('@ext', m.ext.lower())
-        if filename != m.name:
-            plan.add_task((m, filename))
-    return plan

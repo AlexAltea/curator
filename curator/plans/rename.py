@@ -11,18 +11,13 @@ from curator.analysis import *
 from curator import Plan, Task, Media
 
 class RenamePlan(Plan):
-    def handle_task(self, task):
-        media, name = task
-        src = media.path
-        dst = os.path.join(media.dir, name)
-        os.rename(src, dst)
-
     def show_tasks(self):
         thead = ("Old", "→", "New")
         tbody = []
         for task in self.tasks:
-            media, name = task
-            tbody.append((media.name, "→", name))
+            name_input = task.inputs[0].name
+            name_output = task.outputs[0].name
+            tbody.append((name_input, "→", name_output))
         return thead, tbody
 
 class RenameTask(Task):
@@ -53,5 +48,7 @@ def plan_rename(media, format):
         if '@ext' in format:
             filename = filename.replace('@ext', m.ext.lower())
         if filename != m.name:
-            plan.add_task((m, filename))
+            output_path = os.path.join(os.path.dirname(m.path), filename)
+            output_media = Media(output_path, Media.TYPE_FILE)
+            plan.add_task(RenameTask(m, output_media))
     return plan
