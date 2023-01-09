@@ -51,18 +51,23 @@ The following commands are supported:
 
 def curator_merge(argv):
     parser = curator_argparser()
+    parser.add_argument('-d', '--delete', action='store_true', help='delete inputs after merging')
     parser.add_argument('-o', '--output', choices=['mkv'], default='mkv')
     args = parser.parse_args(argv)
 
-    print(curator.media_input(args.input))
+    from curator.plans import plan_merge
+    media = curator.media_input(args.input, recursive=args.r)
+    plan = plan_merge(media, args.output, args.delete)
+    curator_handle_plan(plan, args)
 
 def curator_rename(argv):
     parser = curator_argparser()
     parser.add_argument('-f', '--format', default="@name (@year).@ext")
     args = parser.parse_args(argv)
 
+    from curator.plans import plan_rename
     media = curator.media_input(args.input, recursive=args.r)
-    plan = curator.plan_rename(media, args.format)
+    plan = plan_rename(media, args.format)
     curator_handle_plan(plan, args)
 
 def curator_link(argv):
@@ -71,8 +76,9 @@ def curator_link(argv):
     parser.add_argument('-o', '--output')
     args = parser.parse_args(argv)
 
+    from curator.plans import plan_link
     media = curator.media_input(args.input, recursive=args.r)
-    plan = curator.plan_link(media, args.filter, args.output)
+    plan = plan_link(media, args.filter, args.output)
     curator_handle_plan(plan, args)
 
 def main():

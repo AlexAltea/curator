@@ -7,46 +7,8 @@ Curator.
 import logging
 import os
 
-import ffmpeg
-
-from .analysis import *
-from .media import *
-from .tui import *
-
-class Plan:
-    def __init__(self, tasks=[]):
-        self.tasks = tasks
-
-    def apply(self):
-        for task in self.tasks:
-            self.handle_task(task)
-
-    def add_task(self, task):
-        self.tasks.append(task)
-
-    def get_cols(self):
-        return self.cols
-
-    def get_rows(self):
-        return
-
-    def show(self):
-        thead, tbody = self.show_tasks()
-        print_plan(thead, tbody)
-
-    def edit(self):
-        return
-
-class Task:
-    def __init__(self, inputs=[], outputs=[]):
-        self.inputs = inputs
-        self.outputs = outputs
-        self.enabled = True
-        self.id = None
-
-# Plans
-
-
+from curator.analysis import *
+from curator import Plan, Task, Media
 
 class RenamePlan(Plan):
     def handle_task(self, task):
@@ -62,6 +24,15 @@ class RenamePlan(Plan):
             media, name = task
             tbody.append((media.name, "→", name))
         return thead, tbody
+
+class RenameTask(Task):
+    def __init__(self, input, output):
+        super().__init__([input], [output])
+
+    def apply(self):
+        src = self.inputs[0].path
+        dst = self.outputs[0].path
+        os.rename(src, dst)
 
 def plan_rename(media, format):
     plan = RenamePlan()
