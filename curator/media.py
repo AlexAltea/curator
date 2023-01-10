@@ -53,7 +53,7 @@ class Media:
         cmd += ['-of', 'json']
         result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
-            raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
+            raise Exception(f"Failed get info from {self.path} with ffmpeg")
         output = result.stdout.decode('utf-8')
         info = json.loads(output)
         return info['streams']
