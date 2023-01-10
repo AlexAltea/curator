@@ -63,7 +63,10 @@ class Media:
 def media_input(paths, recursive=False):
     media = []
     for path in paths:
+        if os.path.isfile(path):
+            media.append(Media(path))
+            continue
         for path in glob.glob(path, recursive=recursive):
             if os.path.isfile(path):
-                media.append(Media(path))            
+                media.append(Media(path))
     return media
