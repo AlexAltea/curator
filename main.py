@@ -44,10 +44,21 @@ CURATOR_USAGE = '''
 Usage: curator <command> [<args>]
 
 The following commands are supported:
-   merge   Merge related files into a single container.
-   link    Create symbolic links to files in another directory.
-   rename  Rename files according to their metadata.
+  link    Create symbolic links to files in another directory.
+  merge   Merge related files into a single container.
+  rename  Rename files according to their metadata.
 '''
+
+def curator_link(argv):
+    parser = curator_argparser()
+    parser.add_argument('-f', '--filter', action='append', help="metadata filter(s), e.g. `tag:s:*:language=eng`")
+    parser.add_argument('-o', '--output')
+    args = parser.parse_args(argv)
+
+    from curator.plans import plan_link
+    media = curator.media_input(args.input, recursive=args.r)
+    plan = plan_link(media, args.filter, args.output)
+    curator_handle_plan(plan, args)
 
 def curator_merge(argv):
     parser = curator_argparser()
@@ -70,21 +81,10 @@ def curator_rename(argv):
     plan = plan_rename(media, args.format)
     curator_handle_plan(plan, args)
 
-def curator_link(argv):
-    parser = curator_argparser()
-    parser.add_argument('-f', '--filter')
-    parser.add_argument('-o', '--output')
-    args = parser.parse_args(argv)
-
-    from curator.plans import plan_link
-    media = curator.media_input(args.input, recursive=args.r)
-    plan = plan_link(media, args.filter, args.output)
-    curator_handle_plan(plan, args)
-
 def main():
     commands = {
-        'merge': curator_merge,
         'link': curator_link,
+        'merge': curator_merge,
         'rename': curator_rename,
     }
 

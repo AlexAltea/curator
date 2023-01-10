@@ -7,8 +7,6 @@ Curator.
 import logging
 import os
 
-import ffmpeg
-
 from .analysis import *
 from .media import *
 from .tui import *
@@ -31,6 +29,3 @@ class Plan:
     def show(self):
         thead, tbody = self.show_tasks()
         print_plan(thead, tbody)
-
-    def edit(self):
-        return

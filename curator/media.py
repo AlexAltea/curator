@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import glob
+import json
 import os
+import subprocess
 
 # Extensions
 VIDEO_EXTENSIONS = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'mpg', 'wmv']
@@ -43,6 +45,17 @@ class Media:
 
     def has_audio_ext(self):
         return self.ext in AUDIO_EXTENSIONS
+
+    def get_stream_info(self):
+        assert(self.stream is None)
+        cmd = ['ffprobe', self.path]
+        cmd += ['-show_streams']
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
+        info = json.loads(result.stdout)
+        return info['streams']
 
     def __repr__(self):
         return f'Media("{self.path}")'
