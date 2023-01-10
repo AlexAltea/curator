@@ -51,10 +51,11 @@ class Media:
         cmd = ['ffprobe', self.path]
         cmd += ['-show_streams']
         cmd += ['-of', 'json']
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
             raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
-        info = json.loads(result.stdout)
+        output = result.stdout.decode('utf-8')
+        info = json.loads(output)
         return info['streams']
 
     def __repr__(self):
