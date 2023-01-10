@@ -6,6 +6,7 @@ Curator.
 
 import os
 import subprocess
+import tempfile
 
 from curator.analysis import *
 from curator import Plan, Task, Media
@@ -27,7 +28,20 @@ class TagTask(Task):
         self.new_value = new_value
 
     def apply(self):
-        raise Exception('unimplemented')
+        m = self.inputs[0]
+        cmd = ['ffmpeg']
+        cmd += ['-i', m.path]
+        cmd += ['-c:v', 'copy']
+        cmd += ['-c:a', 'copy']
+        cmd += ['-c:s', 'copy']
+        cmd += [f'-metadata:s:{m.stream}', f'{self.tag}={self.new_value}']
+        with tempfile.TemporaryDirectory() as tmp:
+            output = os.path.join(tmp, f'output.{m.ext}')
+            cmd += [output]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"Failed to update tags in {m.name} with ffmpeg:\n{result.stderr}")
+            os.replace(output, m.path)
 
     def set_new_value(self, new_value):
         self.new_value = new_value
