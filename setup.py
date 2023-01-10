@@ -25,7 +25,7 @@ More information at: https://github.com/AlexAltea/curator
 setuptools.setup(
     name='curator',
     version=CURATOR_VERSION,
-    description='Automated management and streaming of movie collections',
+    description='Automated normalization and curating of media collections',
     long_description=CURATOR_DESCRIPTION,
     license='Apache-2.0',
     author='Alexandro Sanchez Bach',

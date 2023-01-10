@@ -47,11 +47,12 @@ The following commands are supported:
   link    Create symbolic links to files in another directory.
   merge   Merge related files into a single container.
   rename  Rename files according to their metadata.
+  tag     Update stream metadata/tags.
 '''
 
 def curator_link(argv):
     parser = curator_argparser()
-    parser.add_argument('-f', '--filter', action='append', help="metadata filter(s), e.g. `tag:s:*:language=eng`")
+    parser.add_argument('-f', '--filter', action='append', help="metadata filter(s), e.g. `tags.language=eng`")
     parser.add_argument('-o', '--output')
     args = parser.parse_args(argv)
 
@@ -81,11 +82,25 @@ def curator_rename(argv):
     plan = plan_rename(media, args.format)
     curator_handle_plan(plan, args)
 
+def curator_tag(argv):
+    parser = curator_argparser()
+    parser.add_argument('-s', '--streams', required=True, choices=["audio", "subtitle"])
+    parser.add_argument('-t', '--tag', required=True, choices=["language"])
+    parser.add_argument('--skip-tagged', action='store_true',
+        help='skip streams where a valid tag already exists')
+    args = parser.parse_args(argv)
+
+    from curator.plans import plan_tag
+    media = curator.media_input(args.input, recursive=args.r)
+    plan = plan_tag(media, args.streams, args.tag, args.skip_tagged)
+    curator_handle_plan(plan, args)
+
 def main():
     commands = {
         'link': curator_link,
         'merge': curator_merge,
         'rename': curator_rename,
+        'tag': curator_tag,
     }
 
     # If no arguments are provided

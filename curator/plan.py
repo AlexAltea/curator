@@ -16,6 +16,10 @@ class Plan:
         self.tasks = []
         self.last_id = 0
 
+    def __iter__(self):
+        for task in self.tasks:
+            yield task
+
     def add_task(self, task):
         self.last_id += 1
         self.tasks.append(task)
