@@ -7,10 +7,6 @@ Curator.
 import os
 import re
 
-import chardet
-import langid
-import pysrt
-
 YEAR_MIN = 1800
 YEAR_MAX = 2100
 
@@ -49,15 +45,4 @@ def detect_name(name, year=None):
     match = re.match(r'[\w\s\-\']+', name)
     if match:
         return match[0].strip()
-    return None
-
-def detect_subtitle_language(path):
-    _, ext = os.path.splitext(path)
-    if ext == '.srt':
-        with open(path, 'rb') as f:
-            enc = chardet.detect(f.read())['encoding']
-        subs = pysrt.open(path, encoding=enc)
-        text = ' '.join(map(lambda x: x.text, subs))
-        lang = langid.classify(text)[0]
-        return lang
     return None

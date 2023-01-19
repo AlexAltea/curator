@@ -7,7 +7,10 @@ import os
 import subprocess
 import tempfile
 
-from iso639 import languages
+import chardet
+import iso639
+import langid
+import pysrt
 
 # Extensions
 VIDEO_EXTENSIONS = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'mpg', 'wmv']
@@ -52,6 +55,9 @@ class Media:
     def has_audio_ext(self):
         return self.ext in AUDIO_EXTENSIONS
 
+    def has_subtitle_ext(self):
+        return self.ext in TEXTS_EXTENSIONS
+
     def get_stream_info(self):
         if self.stream_info:
             return self.stream_info
@@ -76,10 +82,11 @@ class Media:
         if codec_type == 'audio':
             return detect_audio_language(self)
         if codec_type == 'subtitle':
-            return 'TODO'
+            return detect_subtitle_language(self)
 
     def __repr__(self):
         return f'Media("{self.path}")'
+
 
 def media_input(paths, recursive=False):
     media = []
@@ -91,6 +98,7 @@ def media_input(paths, recursive=False):
             if os.path.isfile(path):
                 media.append(Media(path))
     return media
+
 
 def detect_audio_language(media, max_samples=10):
     """
@@ -119,7 +127,7 @@ def detect_audio_language(media, max_samples=10):
             cmd += [sample]
             result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if result.returncode != 0:
-                raise Exception(f"Failed extract audio sample from {self.path} with ffmpeg")
+                raise Exception(f"Failed to extract audio sample from {media.path} with ffmpeg")
 
             # Detect language
             audio = whisper.load_audio(sample)
@@ -131,5 +139,30 @@ def detect_audio_language(media, max_samples=10):
 
     # Get highest occurring language and convert ISO 639-1 to ISO 639-3
     lang = max(results, key=probs.get)
-    lang = languages.get(part1=lang).part3
+    lang = iso639.languages.get(part1=lang).part3
     return lang
+
+
+def detect_subtitle_language(media):
+    # If video container, extract to SRT
+    if media.has_video_ext():
+        info = media.get_stream_info()
+        with tempfile.TemporaryDirectory() as tmp:
+            output = os.path.join(tmp, 'output.srt')
+            cmd = ['ffmpeg', '-i', media.path, '-map', f'0:{media.stream}']
+            cmd += [output]
+            result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if result.returncode != 0:
+                raise Exception(f"Failed to extract subtitles from {media.path} with ffmpeg")
+            return detect_subtitle_language(Media(output))
+    # If SRT, detect language
+    elif media.ext == 'srt':
+        with open(media.path, 'rb') as f:
+            enc = chardet.detect(f.read())['encoding']
+        subs = pysrt.open(media.path, encoding=enc)
+        text = ' '.join(map(lambda x: x.text, subs))
+        lang = langid.classify(text)[0]
+        lang = iso639.languages.get(part1=lang).part3
+        return lang
+    else:
+        raise Exception(f"Unsupported media")
