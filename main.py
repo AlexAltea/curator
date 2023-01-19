@@ -86,13 +86,14 @@ def curator_tag(argv):
     parser = curator_argparser()
     parser.add_argument('-s', '--streams', required=True, choices=["audio", "subtitle"])
     parser.add_argument('-t', '--tag', required=True, choices=["language"])
+    parser.add_argument('-v', '--value', required=False)
     parser.add_argument('--skip-tagged', action='store_true',
         help='skip streams where a valid tag already exists')
     args = parser.parse_args(argv)
 
     from curator.plans import plan_tag
     media = curator.media_input(args.input, recursive=args.r)
-    plan = plan_tag(media, args.streams, args.tag, args.skip_tagged)
+    plan = plan_tag(media, args.streams, args.tag, args.value, args.skip_tagged)
     curator_handle_plan(plan, args)
 
 def main():

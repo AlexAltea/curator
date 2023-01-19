@@ -46,7 +46,7 @@ class TagTask(Task):
     def set_new_value(self, new_value):
         self.new_value = new_value
 
-def plan_tag(media, stype, tag, skip_tagged=False):
+def plan_tag(media, stype, tag, value=None, skip_tagged=False):
     # Locate relevant streams
     plan = TagPlan()
     tasks = []
@@ -62,14 +62,14 @@ def plan_tag(media, stype, tag, skip_tagged=False):
                 stream = Media(m.path, Media.TYPE_FILE, stream=stream_index)
                 task = TagTask(stream, tag, stream_value)
                 tasks.append(task)
-    # Auto-tag audio
-    if stype == "audio":
+    # Set or auto-detect value
+    if value:
         for task in tasks:
-            task.set_new_value('TODO')
-    # Auto-tag subtitles
-    if stype == "subtitle":
+            task.set_new_value(value)
+    elif tag == 'language':
         for task in tasks:
-            task.set_new_value('TODO')
+            lang = task.inputs[0].detect_language()
+            task.set_new_value(lang)
     # Prepare plan with changes
     for task in tasks:
         if task.old_value != task.new_value:
