@@ -32,7 +32,7 @@ def curator_handle_plan(plan, args):
         return
 
     # Interactive mode (default)
-    plan.edit()
+    #plan.edit()
     #plan.apply()
 
 # Usage

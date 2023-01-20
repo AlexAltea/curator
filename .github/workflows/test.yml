@@ -1,0 +1,33 @@
+name: test
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7"]
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Install and cache FFmpeg
+      - uses: FedericoCarboni/setup-ffmpeg@v2
+        name: Set up FFmpeg
+
+      # Install and cache Python dependencies
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      # Package tests
+      - name: Test package
+        run: |
+          python test.py
+          python setup.py check --strict --metadata
+      - name: Install package
+        run: |
+          pip install .

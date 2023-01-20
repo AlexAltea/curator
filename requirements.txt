@@ -1,6 +1,6 @@
 chardet==3.0.4
 iso-639==0.4.5
 langid==1.1.6
-numpy==1.24.1
+numpy>=1.21.6
 openai-whisper==20230117
 pysrt==1.1.2
