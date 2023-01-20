@@ -88,12 +88,21 @@ def curator_tag(argv):
     parser.add_argument('-t', '--tag', required=True, choices=["language"])
     parser.add_argument('-v', '--value', required=False)
     parser.add_argument('--skip-tagged', action='store_true',
-        help='skip streams where a valid tag already exists')
+        help='skip streams if a valid tag already exists')
+    # Tag-specific options
+    parser.add_argument('--only-macrolanguages', action='store_true',
+        help='when detecting languages, consider only macrolanguages. ' +
+             'e.g. this will map `nno`/`nnb` detections into `nor`.')
     args = parser.parse_args(argv)
+
+    # Select relevant options
+    select = lambda *keys: { k: vars(args)[k] for k in keys }
+    if args.tag == 'language':
+        opts = select('only_macrolanguages')
 
     from curator.plans import plan_tag
     media = curator.media_input(args.input, recursive=args.r)
-    plan = plan_tag(media, args.streams, args.tag, args.value, args.skip_tagged)
+    plan = plan_tag(media, args.streams, args.tag, args.value, args.skip_tagged, opts)
     curator_handle_plan(plan, args)
 
 def main():

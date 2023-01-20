@@ -8,7 +8,6 @@ import os
 import subprocess
 import tempfile
 
-from curator.analysis import *
 from curator import Plan, Task, Media
 
 class TagPlan(Plan):
@@ -46,7 +45,7 @@ class TagTask(Task):
     def set_new_value(self, new_value):
         self.new_value = new_value
 
-def plan_tag(media, stype, tag, value=None, skip_tagged=False):
+def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
     # Locate relevant streams
     plan = TagPlan()
     tasks = []
@@ -67,7 +66,7 @@ def plan_tag(media, stype, tag, value=None, skip_tagged=False):
             task.set_new_value(value)
     elif tag == 'language':
         for task in tasks:
-            lang = task.inputs[0].detect_language()
+            lang = task.inputs[0].detect_language(opts)
             task.set_new_value(lang)
     # Prepare plan with changes
     for task in tasks:

@@ -12,6 +12,11 @@ import iso639
 import langid
 import pysrt
 
+# Default options
+DEF_OPTS_LANGUAGE = {
+    'only_macrolanguages': False
+}
+
 class Stream:
     def __init__(self, media, index, info=None):
         self.media = media
@@ -59,14 +64,15 @@ class Stream:
             return float(info['duration'])
         raise Exception("Could not determine stream duration.")
 
-    def detect_language(self):
+    def detect_language(self, opts=DEF_OPTS_LANGUAGE):
+        opts = DEF_OPTS_LANGUAGE if opts is None else opts
         codec_type = self.get_info()['codec_type']
         if codec_type == 'audio':
-            return self.detect_audio_language()
+            return self.detect_audio_language(opts)
         if codec_type == 'subtitle':
-            return self.detect_subtitle_language()
+            return self.detect_subtitle_language(opts)
 
-    def detect_audio_language(self, max_samples=10):
+    def detect_audio_language(self, opts, max_samples=10):
         """
         Detect language of an audio stream using OpenAI Whisper.
         """
@@ -104,12 +110,28 @@ class Stream:
                 lang = max(probs, key=probs.get)
                 results[lang] = results.get(lang, 0) + 1
 
+        # Rename keys since OpenAI Whisper does not fully adhere to ISO 639-1
+        replacements = [('jw', 'jv')]
+        for old, new in replacements:
+            results[new] = results.pop(old)
+
+        # Optionally merge into ISO 639-3 macrolanguages and return highest ocurring
+        if opts['only_macrolanguages']:
+            macro_results = {}
+            for key, value in results.items():
+                part3 = iso639.languages.get(part1=key).part3
+                macro = iso639.languages.get(part1=key).macro
+                lang = macro if macro else part3
+                macro_results[lang] = macro_results.get(lang, 0) + value
+            lang = max(macro_results, key=macro_results.get)
+            return lang
+
         # Get highest occurring language and convert ISO 639-1 to ISO 639-3
         lang = max(results, key=results.get)
         lang = iso639.languages.get(part1=lang).part3
         return lang
 
-    def detect_subtitle_language(self):
+    def detect_subtitle_language(self, opts):
         """
         Detect subtitle language copying/converting to SRT,
         extracting the raw text and detecting its language.
