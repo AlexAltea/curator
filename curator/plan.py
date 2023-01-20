@@ -1,3 +1,5 @@
+from .tui import *
+
 class Plan:
     def __init__(self):
         self.tasks = []

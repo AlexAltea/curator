@@ -32,9 +32,9 @@ setuptools.setup(
     author_email='alexandro@phi.nz',
     url=CURATOR_REPOSITORY_URL,
     download_url=CURATOR_DOWNLOAD_URL,
-    packages=['curator'],
+    packages=['curator', 'curator.plans'],
     entry_points = {
-        'console_scripts': ['curator=curator.main:main'],
+        'console_scripts': ['curator=curator.cli:main'],
     },
     classifiers=[
         'Intended Audience :: Developers',
