@@ -6,10 +6,12 @@ import subprocess
 import tempfile
 
 # Configuration
-PROJECT_ROOT = os.path.abspath("..")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.join(SCRIPT_DIR, "..")
 PROJECT_DOCS = os.path.join(PROJECT_ROOT, "docs")
 
 # Data
+# TODO: Generate the screenshots from actual output
 TERM_CURATOR_MERGE = '''$ curator merge -f mkv ./movies/The*
 ┌───┬──────────────────────────────────┬───┬────────────────────────────────┐
 │ # │ Inputs                           │ → │ Output                         │
@@ -35,6 +37,19 @@ TERM_CURATOR_RENAME = '''$ curator rename -f "@name (@year).@ext" ./downloads/*
 └───┴────────────────────────────────────────────────────┴───┴─────────────────────────────────┘
 Continue? (y/N) '''
 
+TERM_CURATOR_TAG = '''$ curator tag -s audio -t language --only-macrolanguages .
+┌───┬────────────────────────────────┬────────┬─────┬───┬─────┐
+│ # │ Name                           │ Stream │ Old │ → │ New │
+├───┼────────────────────────────────┼────────┼─────┼───┼─────┤
+│ 1 │ El Bola (2000).avi             │ 1      │     │ → │ spa │
+│ 2 │ Perfect Blue (1997).mkv        │ 1      │     │ → │ jpn │
+│ 3 │ Perfect Blue (1997).mkv        │ 2      │     │ → │ eng │
+│ 4 │ Saving Private Ryan (1998).mp4 │ 1      │     │ → │ eng │
+│ 5 │ The Innocents (2021).mkv       │ 1      │     │ → │ nor │
+│ 6 │ Three-Body (2023) - S01E01.mkv │ 1      │ chi │ → │ zho │
+└───┴────────────────────────────────┴────────┴─────┴───┴─────┘
+Continue? (y/N) '''
+
 def termtosvg(text, output):
     term_w = 100
     term_h = text.count('\n') + 1
@@ -56,6 +71,8 @@ def main():
         os.path.join(PROJECT_DOCS, 'images/curator-merge.svg'))
     termtosvg(TERM_CURATOR_RENAME,
         os.path.join(PROJECT_DOCS, 'images/curator-rename.svg'))
+    termtosvg(TERM_CURATOR_TAG,
+        os.path.join(PROJECT_DOCS, 'images/curator-tag.svg'))
 
 if __name__ == "__main__":
     main()

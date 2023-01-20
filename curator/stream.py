@@ -109,7 +109,8 @@ class Stream:
         # Rename keys since OpenAI Whisper does not fully adhere to ISO 639-1
         replacements = [('jw', 'jv')]
         for old, new in replacements:
-            results[new] = results.pop(old)
+            if old in results:
+                results[new] = results.pop(old)
 
         # Optionally merge into ISO 639-3 macrolanguages and return highest ocurring
         if opts['only_macrolanguages']:

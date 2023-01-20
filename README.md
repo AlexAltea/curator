@@ -31,10 +31,6 @@ Highlighted use cases (current and planned):
 
 Below you can find a description and examples of all tools provided by Curator:
 
-### Link
-
-TODO.
-
 ### Merge
 
 ![example-curator-merge](./docs/images/curator-merge.svg)
@@ -45,4 +41,4 @@ TODO.
 
 ### Tag
 
-TODO.
+![example-curator-tag](./docs/images/curator-tag.svg)
