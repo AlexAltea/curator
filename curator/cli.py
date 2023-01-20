@@ -8,9 +8,26 @@ import sys
 
 import curator
 
-# Configuration
-DEFAULT_CONFIG = 'curator.json'
-DEFAULT_DATABASE = 'curator.db'
+def confirm(question, default="yes"):
+    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError(f"Invalid default answer: '{default}'")
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == "":
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond 'yes' or 'no' ('y' or 'n').\n")
 
 # Helpers
 def curator_argparser():
@@ -30,10 +47,11 @@ def curator_handle_plan(plan, args):
     if args.y:
         plan.apply()
         return
-
     # Interactive mode (default)
-    #plan.edit()
-    #plan.apply()
+    #plan.edit() # TODO
+    plan.show()
+    if confirm("Continue?", default="no"):
+        plan.apply()
 
 # Usage
 CURATOR_USAGE = '''
