@@ -52,8 +52,8 @@ The following commands are supported:
 
 def curator_link(argv):
     parser = curator_argparser()
-    parser.add_argument('-f', '--filter', action='append', help="metadata filter(s), e.g. `tags.language=eng`")
-    parser.add_argument('-o', '--output')
+    parser.add_argument('-f', '--filter', action='append', help="metadata filter(s), e.g. `tags.language=eng`", default=[])
+    parser.add_argument('-o', '--output', required=True)
     args = parser.parse_args(argv)
 
     from curator.plans import plan_link

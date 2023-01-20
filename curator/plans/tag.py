@@ -16,8 +16,8 @@ class TagPlan(Plan):
         thead = ("Name", "Stream", "Old tag", "→", "New tag")
         tbody = []
         for task in self.tasks:
-            m = task.inputs[0]
-            tbody.append((m.name, str(m.stream), task.old_value, "→", task.new_value))
+            s = task.inputs[0]
+            tbody.append((s.media.name, str(s.index), task.old_value, "→", task.new_value))
         return thead, tbody
 
 class TagTask(Task):
@@ -28,20 +28,20 @@ class TagTask(Task):
         self.new_value = new_value
 
     def apply(self):
-        m = self.inputs[0]
+        s = self.inputs[0]
         cmd = ['ffmpeg']
-        cmd += ['-i', m.path]
+        cmd += ['-i', s.media.path]
         cmd += ['-c:v', 'copy']
         cmd += ['-c:a', 'copy']
         cmd += ['-c:s', 'copy']
-        cmd += [f'-metadata:s:{m.stream}', f'{self.tag}={self.new_value}']
+        cmd += [f'-metadata:s:{s.index}', f'{self.tag}={self.new_value}']
         with tempfile.TemporaryDirectory() as tmp:
-            output = os.path.join(tmp, f'output.{m.ext}')
+            output = os.path.join(tmp, f'output.{s.media.ext}')
             cmd += [output]
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                raise Exception(f"Failed to update tags in {m.name} with ffmpeg:\n{result.stderr}")
-            os.replace(output, m.path)
+                raise Exception(f"Failed to update tags in {s.media.name} with ffmpeg:\n{result.stderr}")
+            os.replace(output, s.media.path)
 
     def set_new_value(self, new_value):
         self.new_value = new_value
@@ -52,14 +52,13 @@ def plan_tag(media, stype, tag, value=None, skip_tagged=False):
     tasks = []
     for m in media:
         if m.has_video_ext():
-            for stream in m.get_stream_info():
-                if stream['codec_type'] != stype:
+            for stream in m.get_streams():
+                stream_info = stream.get_info()
+                if stream_info['codec_type'] != stype:
                     continue
-                stream_index = stream['index']
-                stream_value = stream['tags'].get(tag)
+                stream_value = stream_info['tags'].get(tag)
                 if skip_tagged and stream_value is not None:
                     continue
-                stream = Media(m.path, Media.TYPE_FILE, stream=stream_index)
                 task = TagTask(stream, tag, stream_value)
                 tasks.append(task)
     # Set or auto-detect value

@@ -12,6 +12,8 @@ import iso639
 import langid
 import pysrt
 
+from .stream import *
+
 # Extensions
 VIDEO_EXTENSIONS = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'mpg', 'wmv']
 AUDIO_EXTENSIONS = ['mp3', 'aac', 'ogg']
@@ -22,14 +24,8 @@ class Media:
     TYPE_FILE = 1
     TYPE_LINK = 2
 
-    # Stream
-    STREAM_VIDEO = 1
-    STREAM_AUDIO = 2
-    STREAM_TEXTS = 3
-
-    def __init__(self, path, type=None, stream=None):
+    def __init__(self, path, type=None):
         self.path = path
-        self.stream = stream
 
         # Detect regular file or link
         if type is None:
@@ -46,8 +42,9 @@ class Media:
         self.dir = os.path.dirname(root)
         self.ext = ext[1:]
 
-        # Cache stream information
-        self.stream_info = None
+        # Cache media information
+        self.streams = None
+        self.info = None
 
     def has_video_ext(self):
         return self.ext in VIDEO_EXTENSIONS
@@ -58,9 +55,11 @@ class Media:
     def has_subtitle_ext(self):
         return self.ext in TEXTS_EXTENSIONS
 
-    def get_stream_info(self):
-        if self.stream_info:
-            return self.stream_info
+    def get_streams(self):
+        if self.streams is not None:
+            return self.streams
+
+        # Obtain information about streams within media
         cmd = ['ffprobe', self.path]
         cmd += ['-show_streams']
         cmd += ['-of', 'json']
@@ -68,21 +67,28 @@ class Media:
         if result.returncode != 0:
             raise Exception(f"Failed get info from {self.path} with ffmpeg")
         output = result.stdout.decode('utf-8')
-        info = json.loads(output)
-        if self.stream:
-            self.stream_info = info['streams'][self.stream]
-        else:
-            self.stream_info = info['streams']
-        return self.stream_info
+        streams_info = json.loads(output)['streams']
 
-    def detect_language(self):
-        if self.stream is None:
-            raise Exception(f"Cannot detect language in containers. Specify an individual stream.")
-        codec_type = self.get_stream_info()['codec_type']
-        if codec_type == 'audio':
-            return detect_audio_language(self)
-        if codec_type == 'subtitle':
-            return detect_subtitle_language(self)
+        # Create and return stream objects
+        streams = []
+        for stream_info in streams_info:
+            stream = Stream(self, stream_info['index'], stream_info)
+            streams.append(stream)
+        self.streams = streams
+        return streams
+
+    def get_info(self):
+        if self.info:
+            return self.info
+        cmd = ['ffprobe', self.path]
+        cmd += ['-show_format']
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            raise Exception(f"Failed get info from {self.path} with ffmpeg")
+        output = result.stdout.decode('utf-8')
+        self.info = json.loads(output)['format']
+        return self.info
 
     def __repr__(self):
         return f'Media("{self.path}")'
@@ -98,71 +104,3 @@ def media_input(paths, recursive=False):
             if os.path.isfile(path):
                 media.append(Media(path))
     return media
-
-
-def detect_audio_language(media, max_samples=10):
-    """
-    Detect language of an audio stream using OpenAI Whisper.
-    """
-    import whisper
-    from whisper.audio import CHUNK_LENGTH
-    model = whisper.load_model("base")
-
-    # Calculate number of samples
-    info = media.get_stream_info()
-    duration = float(info['duration'])
-    len_samples = float(CHUNK_LENGTH)
-    num_samples = min(max_samples, int(duration / len_samples))
-
-    results = {}
-    with tempfile.TemporaryDirectory() as tmp:
-        ext = info['codec_name']
-        for index in range(num_samples):
-            # Extract sample
-            sample = os.path.join(tmp, f'sample{index:04d}.{ext}')
-            cmd = ['ffmpeg', '-i', media.path, '-map', f'0:{media.stream}']
-            cmd += ['-c', 'copy']
-            cmd += ['-ss', str(index * duration / num_samples)]
-            cmd += ['-t', str(len_samples)]
-            cmd += [sample]
-            result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                raise Exception(f"Failed to extract audio sample from {media.path} with ffmpeg")
-
-            # Detect language
-            audio = whisper.load_audio(sample)
-            audio = whisper.pad_or_trim(audio)
-            mel = whisper.log_mel_spectrogram(audio).to(model.device)
-            _, probs = model.detect_language(mel)
-            lang = max(probs, key=probs.get)
-            results[lang] = results.get(lang, 0) + 1
-
-    # Get highest occurring language and convert ISO 639-1 to ISO 639-3
-    lang = max(results, key=probs.get)
-    lang = iso639.languages.get(part1=lang).part3
-    return lang
-
-
-def detect_subtitle_language(media):
-    # If video container, extract to SRT
-    if media.has_video_ext():
-        info = media.get_stream_info()
-        with tempfile.TemporaryDirectory() as tmp:
-            output = os.path.join(tmp, 'output.srt')
-            cmd = ['ffmpeg', '-i', media.path, '-map', f'0:{media.stream}']
-            cmd += [output]
-            result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                raise Exception(f"Failed to extract subtitles from {media.path} with ffmpeg")
-            return detect_subtitle_language(Media(output))
-    # If SRT, detect language
-    elif media.ext == 'srt':
-        with open(media.path, 'rb') as f:
-            enc = chardet.detect(f.read())['encoding']
-        subs = pysrt.open(media.path, encoding=enc)
-        text = ' '.join(map(lambda x: x.text, subs))
-        lang = langid.classify(text)[0]
-        lang = iso639.languages.get(part1=lang).part3
-        return lang
-    else:
-        raise Exception(f"Unsupported media")

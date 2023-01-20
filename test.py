@@ -8,7 +8,7 @@ from tests import *
 
 def test():
     test_analysis()
-    test_media()
+    test_stream()
     print('All tests passed successfully.')
 
 if __name__ == '__main__':

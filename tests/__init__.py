@@ -6,4 +6,4 @@ Curator.
 
 # Imports
 from .tests_analysis import *
-from .tests_media import *
+from .tests_stream import *

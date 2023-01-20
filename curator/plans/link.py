@@ -35,12 +35,12 @@ def parse_query(query):
     path = lhs.split('.')
     return { 'lhs_path': path, 'op': operator.eq, 'rhs_value': rhs }
 
-def filter_stream(streams, query):
+def filter_streams(streams, query):
     results = []
     query = parse_query(query)
     for stream in streams:
         try:
-            lhs = functools.reduce(dict.get, query['lhs_path'], stream)
+            lhs = functools.reduce(dict.get, query['lhs_path'], stream.get_info())
         except TypeError:
             continue
         rhs = query['rhs_value']
@@ -52,9 +52,9 @@ def plan_link(media, filters, output):
     plan = LinkPlan()
     for m in media:
         if m.has_video_ext():
-            streams = m.get_stream_info()
+            streams = m.get_streams()
             for query in filters:
-                streams = filter_stream(streams, query)
+                streams = filter_streams(streams, query)
             if not streams:
                 continue
             path = os.path.join(output, m.name)
