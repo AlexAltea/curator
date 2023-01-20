@@ -68,7 +68,7 @@ class Stream:
         if codec_type == 'subtitle':
             return self.detect_subtitle_language(opts)
 
-    def detect_audio_language(self, opts, max_samples=10):
+    def detect_audio_language(self, opts=DEF_OPTS_LANGUAGE, max_samples=10):
         """
         Detect language of an audio stream using OpenAI Whisper.
         """
@@ -127,7 +127,7 @@ class Stream:
         lang = iso639.languages.get(part1=lang).part3
         return lang
 
-    def detect_subtitle_language(self, opts):
+    def detect_subtitle_language(self, opts=DEF_OPTS_LANGUAGE):
         """
         Detect subtitle language copying/converting to SRT,
         extracting the raw text and detecting its language.
