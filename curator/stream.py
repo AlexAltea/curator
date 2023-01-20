@@ -105,7 +105,7 @@ class Stream:
                 results[lang] = results.get(lang, 0) + 1
 
         # Get highest occurring language and convert ISO 639-1 to ISO 639-3
-        lang = max(results, key=probs.get)
+        lang = max(results, key=results.get)
         lang = iso639.languages.get(part1=lang).part3
         return lang
 
