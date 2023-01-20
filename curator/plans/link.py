@@ -1,14 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Curator.
-"""
-
 import functools
 import operator
 import os
 
-from curator.analysis import *
 from curator import Plan, Task, Media
 
 class LinkPlan(Plan):

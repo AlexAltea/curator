@@ -1,16 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Curator.
-"""
-
-import logging
-import os
-
-from .analysis import *
-from .media import *
-from .tui import *
-
 class Plan:
     def __init__(self):
         self.tasks = []

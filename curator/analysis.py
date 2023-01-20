@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Curator.
-"""
-
-import os
 import re
 
 YEAR_MIN = 1800

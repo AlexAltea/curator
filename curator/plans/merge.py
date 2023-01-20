@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Curator.
-"""
-
 import os
 import subprocess
 

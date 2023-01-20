@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Curator.
-"""
+#!/usr/bin/env python3
 
 import argparse
 import logging
@@ -48,7 +44,7 @@ The following commands are supported:
   merge   Merge related files into a single container.
   rename  Rename files according to their metadata.
   tag     Update stream metadata/tags.
-'''
+'''.strip()
 
 def curator_link(argv):
     parser = curator_argparser()
@@ -115,7 +111,7 @@ def main():
 
     # If no arguments are provided
     if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
-        print('Curator: Automated normalization and curating of media collections.')
+        print('Curator: Automated normalization and curating of media collections.\n')
         print(CURATOR_USAGE)
         return
 
@@ -123,7 +119,7 @@ def main():
     command = sys.argv[1]
     handler = commands.get(command)
     if not handler:
-        print('Unsupported command "{}"'.format(command))
+        print('Unsupported command "{}"\n'.format(command))
         print(CURATOR_USAGE)
         exit(1)
     handler(sys.argv[2:])

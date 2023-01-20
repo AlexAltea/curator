@@ -1,16 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import glob
 import json
 import os
 import subprocess
-import tempfile
-
-import chardet
-import iso639
-import langid
-import pysrt
 
 from .stream import *
 

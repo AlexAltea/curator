@@ -3,6 +3,12 @@ Curator
 
 Automated normalization and curating of media collections. Written in Python 3.x.
 
+Install the package via:
+
+```sh
+pip install https://github.com/AlexAltea/curator/archive/master.zip
+```
+
 ## Features
 
 ### Merge

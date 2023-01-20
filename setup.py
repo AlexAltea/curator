@@ -33,6 +33,9 @@ setuptools.setup(
     url=CURATOR_REPOSITORY_URL,
     download_url=CURATOR_DOWNLOAD_URL,
     packages=['curator'],
+    entry_points = {
+        'console_scripts': ['curator=curator.main:main'],
+    },
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License v2.0',
