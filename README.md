@@ -1,6 +1,8 @@
 Curator
 =======
 
+[![ci-badge](https://github.com/AlexAltea/curator/actions/workflows/ci.yml/badge.svg)](https://github.com/AlexAltea/curator/actions/workflows/ci.yml)
+
 Automated normalization and curating of media collections. Written in Python 3.x.
 
 Curator is a collection of stateless CLI tools, following the [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy), to organize large collections of heterogeneous media. Each tool creates a *plan* made of *tasks* with clearly defined input and output files, which the user can optionally review before applying.
