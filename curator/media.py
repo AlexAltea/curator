@@ -81,6 +81,9 @@ class Media:
         self.info = json.loads(output)['format']
         return self.info
 
+    def num_streams():
+        return len(get_streams())
+
     def __repr__(self):
         return f'Media("{self.path}")'
 
