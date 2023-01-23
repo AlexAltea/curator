@@ -48,6 +48,7 @@ class Stream:
             raise Exception(f"Failed get info from {self.path} with ffmpeg")
         output = result.stdout.decode('utf-8')
         self.info = json.loads(output)['streams']
+        self.info.setdefault('tags', {})
         return self.info
 
     def get_duration(self):

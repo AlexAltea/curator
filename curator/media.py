@@ -63,6 +63,7 @@ class Media:
         # Create and return stream objects
         streams = []
         for stream_info in streams_info:
+            stream_info.setdefault('tags', {})
             stream = Stream(self, stream_info['index'], stream_info)
             streams.append(stream)
         self.streams = streams
