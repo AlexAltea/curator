@@ -39,6 +39,28 @@ Below you can find a description and examples of all tools provided by Curator:
 
 ![example-curator-rename](./docs/images/curator-rename.svg)
 
+### Sync
+
+Synchronize streams via data cross-correlation.
+
+Every synchronization task involves (A) a reference stream, and (B) the stream we want to synchronize. We name this relationship as *A ← B*. Curator can only handle the following types of synchronization tasks:
+
+- [ ] *Video ← Audio*:\
+    Comparing lip movement timestamps with ASR timestamps.
+- [ ] *Audio ← Audio*:\
+    Comparing sound data.
+- [ ] *Audio ← Subtitle*:\
+    Comparing ASR timestamps with uniquely matching text timestamps.
+- [ ] *Subtitle ← Subtitle*:\
+    Comparing text timestamps.
+
+The synchronization plan (`SyncPlan`) will create a tree of synchronization tasks (`SyncTask`) for every media file it processes. For example, with an input `Media("movie.mkv")` with streams: `#0` (video), `#1` (audio:eng), `#2` (audio:spa), `#3` (subtitle:eng), `#4` (subtitle:spa), it will genarate the following sync proposals:
+
+1. `#0` ← `#1`
+2. `#1` ← `#2`
+3. `#1` ← `#3`
+4. `#3` ← `#4`
+
 ### Tag
 
 ![example-curator-tag](./docs/images/curator-tag.svg)
