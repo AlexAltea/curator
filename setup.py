@@ -11,11 +11,8 @@ CURATOR_DOWNLOAD_URL = 'https://github.com/AlexAltea/curator/tarball/' + CURATOR
 CURATOR_DESCRIPTION = """Curator
 =========
 
-.. image:: https://coveralls.io/repos/github/AlexAltea/curator/badge.svg?branch=master
-    :target: https://coveralls.io/github/AlexAltea/curator?branch=master
-    
-.. image:: https://img.shields.io/pypi/v/curator.svg
-    :target: https://pypi.python.org/pypi/curator
+.. image:: https://github.com/AlexAltea/curator/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/AlexAltea/curator/actions/workflows/ci.yml
 
 Automated normalization and curating of media collections. Written in Python 3.x.
 
@@ -33,9 +30,17 @@ setuptools.setup(
     url=CURATOR_REPOSITORY_URL,
     download_url=CURATOR_DOWNLOAD_URL,
     packages=['curator', 'curator.plans'],
-    entry_points = {
+    entry_points={
         'console_scripts': ['curator=curator.cli:main'],
     },
+    install_requires=[
+        'chardet==3.0.4',
+        'iso-639==0.4.5',
+        'langid==1.1.6',
+        'numpy>=1.21.6',
+        'openai-whisper==20230117',
+        'pysrt==1.1.2',
+    ],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License v2.0',
