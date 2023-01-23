@@ -10,7 +10,7 @@ class TagPlan(Plan):
         tbody = []
         for task in self.tasks:
             s = task.inputs[0]
-            tbody.append((s.media.name, str(s.index), task.old_value, "→", task.new_value))
+            tbody.append((s.media.name, s.index, task.old_value, "→", task.new_value))
         return thead, tbody
 
 class TagTask(Task):

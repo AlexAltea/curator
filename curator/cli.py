@@ -33,10 +33,15 @@ def confirm(question, default="yes"):
 def curator_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='+', type=str)
+    parser.add_argument('-q', '--query', action='append', help="metadata filter(s), e.g. `tags.language=eng`", default=[])
     parser.add_argument('-y', action='store_true') # Auto-yes
     parser.add_argument('-n', action='store_true') # Auto-no
     parser.add_argument('-r', action='store_true') # Recursive
     return parser
+
+def curator_input(args):
+    media = curator.media_input(args.input, recursive=args.r, queries=args.query)
+    return media
 
 def curator_handle_plan(plan, args):
     # Dry run
@@ -66,13 +71,12 @@ The following commands are supported:
 
 def curator_link(argv):
     parser = curator_argparser()
-    parser.add_argument('-f', '--filter', action='append', help="metadata filter(s), e.g. `tags.language=eng`", default=[])
     parser.add_argument('-o', '--output', required=True)
     args = parser.parse_args(argv)
 
     from curator.plans import plan_link
-    media = curator.media_input(args.input, recursive=args.r)
-    plan = plan_link(media, args.filter, args.output)
+    media = curator_input(args)
+    plan = plan_link(media, args.output)
     curator_handle_plan(plan, args)
 
 def curator_merge(argv):
@@ -82,7 +86,7 @@ def curator_merge(argv):
     args = parser.parse_args(argv)
 
     from curator.plans import plan_merge
-    media = curator.media_input(args.input, recursive=args.r)
+    media = curator_input(args)
     plan = plan_merge(media, args.format, args.delete)
     curator_handle_plan(plan, args)
 
@@ -92,7 +96,7 @@ def curator_rename(argv):
     args = parser.parse_args(argv)
 
     from curator.plans import plan_rename
-    media = curator.media_input(args.input, recursive=args.r)
+    media = curator_input(args)
     plan = plan_rename(media, args.format)
     curator_handle_plan(plan, args)
 
@@ -115,7 +119,7 @@ def curator_tag(argv):
         opts = select('only_macrolanguages')
 
     from curator.plans import plan_tag
-    media = curator.media_input(args.input, recursive=args.r)
+    media = curator_input(args)
     plan = plan_tag(media, args.streams, args.tag, args.value, args.skip_tagged, opts)
     curator_handle_plan(plan, args)
 

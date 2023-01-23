@@ -8,9 +8,9 @@ class SyncPlan(Plan):
         thead = ("Input", "Old start", "+", "Delta", "→", "New start")
         tbody = []
         for task in self.tasks:
-            t0 = str(self.start)
-            t1 = str(self.start + self.delta)
-            dt = str(self.delta)
+            t0 = self.start
+            t1 = self.start + self.delta
+            dt = self.delta
             tbody.append((task.inputs[0].name, t0, "+", dt, "→", t1))
         return thead, tbody
 

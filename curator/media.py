@@ -1,5 +1,7 @@
+import functools
 import glob
 import json
+import operator
 import os
 import subprocess
 
@@ -88,14 +90,47 @@ class Media:
     def __repr__(self):
         return f'Media("{self.path}")'
 
+def parse_query(query):
+    lhs, rhs = query.split('=')
+    path = lhs.split('.')
+    return { 'lhs_path': path, 'op': operator.eq, 'rhs_value': rhs }
 
-def media_input(paths, recursive=False):
+def filter_streams(streams, query):
+    results = []
+    query = parse_query(query)
+    for stream in streams:
+        try:
+            lhs = functools.reduce(dict.get, query['lhs_path'], stream.get_info())
+        except TypeError:
+            continue
+        rhs = query['rhs_value']
+        if query['op'](lhs, rhs):
+            results.append(stream)
+    return results
+
+def filter_check(media, queries):
+    if not queries:
+        return True
+    streams = media.get_streams()
+    for query in queries:
+        streams = filter_streams(streams, query)
+        if len(streams) == 0:
+            return False
+    return True
+
+def media_input(paths, recursive=False, queries=[]):
     media = []
     for path in paths:
+        # Add files
         if os.path.isfile(path):
-            media.append(Media(path))
-            continue
-        for path in glob.glob(path, recursive=recursive):
-            if os.path.isfile(path):
-                media.append(Media(path))
+            m = Media(path)
+            if filter_check(m, queries):
+                media.append(m)
+        # Add directories
+        elif os.path.isdir(path):
+            for path in glob.glob(path, recursive=recursive):
+                if os.path.isfile(path):
+                    m = Media(path)
+                    if filter_check(m, queries):
+                        media.append(m)
     return media
