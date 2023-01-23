@@ -116,16 +116,16 @@ class Stream:
         if opts['only_macrolanguages']:
             macro_results = {}
             for key, value in results.items():
-                part3 = iso639.languages.get(part1=key).part3
-                macro = iso639.languages.get(part1=key).macro
-                lang = macro if macro else part3
+                part3 = iso639.Lang(pt1=key).pt3
+                macro = iso639.Lang(pt1=key).macro()
+                lang = macro.pt3 if macro else part3
                 macro_results[lang] = macro_results.get(lang, 0) + value
             lang = max(macro_results, key=macro_results.get)
             return lang
 
         # Get highest occurring language and convert ISO 639-1 to ISO 639-3
         lang = max(results, key=results.get)
-        lang = iso639.languages.get(part1=lang).part3
+        lang = iso639.Lang(pt1=lang).pt3
         return lang
 
     def detect_subtitle_language(self, opts=DEF_OPTS_LANGUAGE):
@@ -142,7 +142,7 @@ class Stream:
             subs = pysrt.open(path, encoding=enc)
             text = ' '.join(map(lambda x: x.text, subs))
             lang = langid.classify(text)[0]
-            lang = iso639.languages.get(part1=lang).part3
+            lang = iso639.Lang(pt1=lang).pt3
             return lang
 
         # Check if the parent media is already an SRT file

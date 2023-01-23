@@ -35,7 +35,7 @@ setuptools.setup(
     },
     install_requires=[
         'chardet==3.0.4',
-        'iso-639==0.4.5',
+        'iso639-lang==2.1.0',
         'langid==1.1.6',
         'numpy>=1.21.6',
         'openai-whisper==20230117',
