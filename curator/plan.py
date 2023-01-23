@@ -21,4 +21,5 @@ class Plan:
 
     def show(self):
         thead, tbody = self.show_tasks()
+        tbody = list(map(lambda row: tuple(map(str, row)), tbody))
         print_plan(thead, tbody)
