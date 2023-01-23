@@ -3,7 +3,7 @@
 
 import setuptools
 
-CURATOR_VERSION = '0.1.0'
+CURATOR_VERSION = '0.1.1'
 CURATOR_REPOSITORY_URL = 'https://github.com/AlexAltea/curator'
 CURATOR_DOWNLOAD_URL = 'https://github.com/AlexAltea/curator/tarball/' + CURATOR_VERSION
 
