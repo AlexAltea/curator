@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import tempfile
 
@@ -34,7 +35,7 @@ class TagTask(Task):
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
                 raise Exception(f"Failed to update tags in {s.media.name} with ffmpeg:\n{result.stderr}")
-            os.replace(output, s.media.path)
+            shutil.move(output, s.media.path)
 
     def set_new_value(self, new_value):
         self.new_value = new_value

@@ -2,6 +2,7 @@
 
 import glob
 import os
+import shutil
 import subprocess
 import tempfile
 
@@ -64,7 +65,7 @@ def termtosvg(text, output):
         assert(result.returncode == 0)
         files = glob.glob(os.path.join(tmp, '*'))
         last = sorted(files)[-1]
-        os.replace(last, output)
+        shutil.move(last, output)
 
 def main():
     termtosvg(TERM_CURATOR_MERGE,

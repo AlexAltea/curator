@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 
 from curator import Plan, Task, Media
@@ -49,7 +50,7 @@ class SyncTask(Task):
             result = subprocess.run(cmd)
             if result.returncode != 0:
                 raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
-            os.replace(output, so.media.path)
+            shutil.move(output, so.media.path)
 
 def plan_sync(media):
     plan = SyncPlan()
