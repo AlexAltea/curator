@@ -64,6 +64,6 @@ def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
             task.set_new_value(lang)
     # Prepare plan with changes
     for task in tasks:
-        if task.old_value != task.new_value:
+        if task.old_value != task.new_value and task.new_value is not None:
             plan.add_task(task)
     return plan
