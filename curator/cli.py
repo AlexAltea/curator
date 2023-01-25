@@ -33,14 +33,22 @@ def confirm(question, default="yes"):
 def curator_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='+', type=str)
+    parser.add_argument('--log', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='WARNING')
     parser.add_argument('-q', '--query', action='append', help="metadata filter(s), e.g. `tags.language=eng`", default=[])
     parser.add_argument('-y', action='store_true') # Auto-yes
     parser.add_argument('-n', action='store_true') # Auto-no
     parser.add_argument('-r', action='store_true') # Recursive
     return parser
 
+def curator_args(parser, argv):
+    args = parser.parse_args(argv)
+    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(message)s',
+        level=getattr(logging, args.log), stream=sys.stderr)
+    return args
+
 def curator_input(args):
     media = curator.media_input(args.input, recursive=args.r, queries=args.query)
+    logging.info(f'Processing {len(media)} input media files')
     return media
 
 def curator_handle_plan(plan, args):
@@ -76,7 +84,7 @@ The following commands are supported:
 def curator_link(argv):
     parser = curator_argparser()
     parser.add_argument('-o', '--output', required=True)
-    args = parser.parse_args(argv)
+    args = curator_args(parser, argv)
 
     from curator.plans import plan_link
     media = curator_input(args)
@@ -87,7 +95,7 @@ def curator_merge(argv):
     parser = curator_argparser()
     parser.add_argument('-d', '--delete', action='store_true', help='delete inputs after merging')
     parser.add_argument('-f', '--format', choices=['mkv'], default='mkv')
-    args = parser.parse_args(argv)
+    args = curator_args(parser, argv)
 
     from curator.plans import plan_merge
     media = curator_input(args)
@@ -97,7 +105,7 @@ def curator_merge(argv):
 def curator_rename(argv):
     parser = curator_argparser()
     parser.add_argument('-f', '--format', default="@name (@year).@ext")
-    args = parser.parse_args(argv)
+    args = curator_args(parser, argv)
 
     from curator.plans import plan_rename
     media = curator_input(args)
@@ -115,7 +123,7 @@ def curator_tag(argv):
     parser.add_argument('--only-macrolanguages', action='store_true',
         help='when detecting languages, consider only macrolanguages. ' +
              'e.g. this will map `nno`/`nnb` detections into `nor`.')
-    args = parser.parse_args(argv)
+    args = curator_args(parser, argv)
 
     # Select relevant options
     select = lambda *keys: { k: vars(args)[k] for k in keys }
@@ -140,6 +148,11 @@ def main():
         print('Curator: Automated normalization and curating of media collections.\n')
         print(CURATOR_USAGE)
         return
+
+    # Configure logging
+    blacklist = ['langid']
+    for name in blacklist:
+        logging.getLogger(name).setLevel(logging.ERROR)
 
     # Dispatch command otherwise
     command = sys.argv[1]

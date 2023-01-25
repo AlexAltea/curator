@@ -1,4 +1,6 @@
+import collections
 import json
+import logging
 import os
 import subprocess
 import tempfile
@@ -74,6 +76,8 @@ class Stream:
         Detect language of an audio stream using OpenAI Whisper.
         """
         assert(self.is_audio())
+        debug = logging.getLogger().level == logging.DEBUG
+        logging.debug(f'Detecting audio language in stream #{self.index} of media: "{self.media.name}"')
 
         import whisper
         from whisper.audio import CHUNK_LENGTH
@@ -104,6 +108,10 @@ class Stream:
                 audio = whisper.pad_or_trim(audio)
                 mel = whisper.log_mel_spectrogram(audio).to(model.device)
                 _, probs = model.detect_language(mel)
+                if debug:
+                    highest_probs = dict(collections.Counter(probs).most_common(5))
+                    highest_probs_rounded = { k: f'{v:.4f}' for k, v in highest_probs.items() }
+                    logging.debug(f'Sample #{index:02d}: {highest_probs_rounded}')
                 lang = max(probs, key=probs.get)
                 results[lang] = results.get(lang, 0) + 1
 
