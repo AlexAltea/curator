@@ -125,12 +125,14 @@ def curator_tag(argv):
              'e.g. this will map `nno`/`nnb` detections into `nor`.')
     parser.add_argument('--max-audio-samples', type=int, default=10,
         help='when detecting languages in audio, max number of samples to extract.')
+    parser.add_argument('--min-score', type=float, default=0.8,
+        help='when detecting languages in audio, max number of samples to extract.')
     args = curator_args(parser, argv)
 
     # Select relevant options
     select = lambda *keys: { k: vars(args)[k] for k in keys }
     if args.tag == 'language':
-        opts = select('only_macrolanguages', 'max_audio_samples')
+        opts = select('only_macrolanguages', 'max_audio_samples', 'min_score')
 
     from curator.plans import plan_tag
     media = curator_input(args)

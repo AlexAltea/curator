@@ -15,6 +15,7 @@ DEF_OPTS_LANGUAGE = {
     'only_macrolanguages': False,
     'max_audio_samples': 10,
     'max_video_samples': 10,
+    'min_score': 0.8,
 }
 
 class Stream:
@@ -105,7 +106,7 @@ class Stream:
                 if result.returncode != 0:
                     raise Exception(f"Failed to extract audio sample from {self.media.path} with ffmpeg")
 
-                # Detect language
+                # Detect language in sample
                 audio = whisper.load_audio(sample)
                 audio = whisper.pad_or_trim(audio)
                 mel = whisper.log_mel_spectrogram(audio).to(model.device)
@@ -115,7 +116,14 @@ class Stream:
                     highest_probs_rounded = { k: f'{v:.4f}' for k, v in highest_probs.items() }
                     logging.debug(f'Sample #{index:02d}: {highest_probs_rounded}')
                 lang = max(probs, key=probs.get)
-                results[lang] = results.get(lang, 0) + 1
+                prob = probs[lang]
+                if opts['min_score'] <= prob:
+                    results.setdefault(lang, []).append(prob)
+
+        # Compute final scores as avg(prob)+votes
+        results = { k: len(v) + sum(v)/len(v) for k, v in results.items()}
+        if not results:
+            return None
 
         # Rename keys since OpenAI Whisper does not fully adhere to ISO 639-1
         replacements = [('jw', 'jv')]
