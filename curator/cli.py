@@ -44,6 +44,10 @@ def curator_input(args):
     return media
 
 def curator_handle_plan(plan, args):
+    if plan.is_empty():
+        print('Current plan requires no tasks. There is nothing to be done.')
+        return
+
     # Dry run
     if args.n:
         plan.show()

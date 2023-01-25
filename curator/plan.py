@@ -9,6 +9,9 @@ class Plan:
         for task in self.tasks:
             yield task
 
+    def is_empty(self):
+        return len(self.tasks) == 0
+
     def add_task(self, task):
         self.last_id += 1
         self.tasks.append(task)
