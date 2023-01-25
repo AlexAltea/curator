@@ -12,7 +12,9 @@ import pysrt
 
 # Default options
 DEF_OPTS_LANGUAGE = {
-    'only_macrolanguages': False
+    'only_macrolanguages': False,
+    'max_audio_samples': 10,
+    'max_video_samples': 10,
 }
 
 class Stream:
@@ -71,7 +73,7 @@ class Stream:
         if codec_type == 'subtitle':
             return self.detect_subtitle_language(opts)
 
-    def detect_audio_language(self, opts=DEF_OPTS_LANGUAGE, max_samples=10):
+    def detect_audio_language(self, opts=DEF_OPTS_LANGUAGE):
         """
         Detect language of an audio stream using OpenAI Whisper.
         """
@@ -86,7 +88,7 @@ class Stream:
         # Calculate number of samples
         duration = self.get_duration()
         len_samples = float(CHUNK_LENGTH)
-        num_samples = min(max_samples, int(duration / len_samples))
+        num_samples = min(opts['max_audio_samples'], int(duration / len_samples))
 
         results = {}
         with tempfile.TemporaryDirectory() as tmp:
