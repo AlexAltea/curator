@@ -128,6 +128,14 @@ def media_input(paths, recursive=False, queries=[]):
                 media.append(m)
         # Add directories
         elif os.path.isdir(path):
+            path = os.path.join(path, '*')
+            for path in glob.glob(path, recursive=recursive):
+                if os.path.isfile(path):
+                    m = Media(path)
+                    if filter_check(m, queries):
+                        media.append(m)
+        # Add wildcards (needed for Windows)
+        elif '*' in path:
             for path in glob.glob(path, recursive=recursive):
                 if os.path.isfile(path):
                     m = Media(path)
