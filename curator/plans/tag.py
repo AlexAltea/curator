@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 import tempfile
 
@@ -29,13 +28,13 @@ class TagTask(Task):
         cmd += ['-c:a', 'copy']
         cmd += ['-c:s', 'copy']
         cmd += [f'-metadata:s:{s.index}', f'{self.tag}={self.new_value}']
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(dir=s.media.dir, suffix='.temp-curator-') as tmp:
             output = os.path.join(tmp, f'output.{s.media.ext}')
             cmd += [output]
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
                 raise Exception(f"Failed to update tags in {s.media.name} with ffmpeg:\n{result.stderr}")
-            shutil.move(output, s.media.path)
+            os.replace(output, s.media.path)
 
     def set_new_value(self, new_value):
         self.new_value = new_value

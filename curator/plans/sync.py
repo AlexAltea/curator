@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 
 from curator import Plan, Task, Media
@@ -44,13 +43,13 @@ class SyncTask(Task):
                 cmd += ['-map', f'0:{i}']
 
         # Generate and replace from temporary directory
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(dir=si.media.dir, suffix='.temp-curator-') as tmp:
             output = os.path.join(tmp, f'output.{si.media.ext}')
             cmd += [output]
             result = subprocess.run(cmd)
             if result.returncode != 0:
                 raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
-            shutil.move(output, so.media.path)
+            os.replace(output, so.media.path)
 
 def plan_sync(media):
     plan = SyncPlan()
