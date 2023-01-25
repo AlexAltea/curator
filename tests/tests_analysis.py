@@ -20,7 +20,8 @@ def test_analysis_years():
     assert(None == detect_year('Ani-Kuri 15 [Japanese]'))
 
     # Stress testing
-    assert(2000 == detect_year('2000'))
+    assert(None == detect_year('2000'))
+    assert(None == detect_year('x2000'))
     assert(2000 == detect_year('1234 2000'))
     assert(2000 == detect_year('1234 2000 1080'))
     assert(2000 == detect_year('1234 2000 1080 x1999'))

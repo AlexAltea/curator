@@ -10,10 +10,13 @@ def detect_year(name):
     - Year is a 4-digit number, optionally surrounded by non-word characters.
     - Year is interpreted as a Gregorian calendar integer in range [YEAR_MIN, YEAR_MAX].
     - Year is the rightmost string satisfying these two conditions.
+    - Year is never found at the beginning of the file name.
     """
-    matches = re.findall(r'(?:\b|_)(\d{4})(?:\b|_)', name)
-    for match in reversed(matches):
-        year = int(match)
+    matches = re.finditer(r'(?:\b|_)(\d{4})(?:\b|_)', name)
+    for match in reversed(list(matches)):
+        if match.start() == 0:
+            return None
+        year = int(match.group(1))
         if YEAR_MIN <= year <= YEAR_MAX:
             return year
     return None
