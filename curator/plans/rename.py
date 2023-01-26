@@ -24,12 +24,13 @@ class RenameTask(Task):
         dst = self.outputs[0].path
         os.rename(src, dst)
 
-def plan_rename(media, format, db=None):
+def plan_rename(media, format, db=None, keep_tags=False):
     plan = RenamePlan()
     for m in media:
-        # Detect name and year
+        # Detect name, year and tags
         name = detect_name(m.name)
         year = detect_year(m.name)
+        tags = detect_tags(m.name)
         if db and (entry := db.query(name, year)):
             name = entry.get('name')
             year = entry.get('year')
@@ -45,6 +46,11 @@ def plan_rename(media, format, db=None):
         filename = filename.replace('@name', str(name))
         filename = filename.replace('@year', str(year))
         filename = filename.replace('@ext', m.ext.lower())
+        filename = filename.replace('@tags',
+            ''.join(map(lambda t: f'[{t}] ', tags)))
+        root, ext = os.path.splitext(filename)
+        filename = root.strip() + ext
+
         if filename != m.name:
             output_path = os.path.join(os.path.dirname(m.path), filename)
             output_media = Media(output_path, Media.TYPE_FILE)

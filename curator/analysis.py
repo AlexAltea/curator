@@ -42,3 +42,14 @@ def detect_name(name, year=None):
     if match:
         return match[0].strip()
     return None
+
+def detect_tags(name):
+    """
+    Extract the file tags in the file name.
+    Assumptions:
+    - Tags are surrounded by square brackets.
+    - Tags do not contain any kind of brackets within.
+    - Multiple tags can exist.
+    """
+    matches = re.findall(r'\[([\w\-\,\.]+)\]', name)
+    return matches
