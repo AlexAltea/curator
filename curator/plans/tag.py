@@ -33,7 +33,8 @@ class TagTask(Task):
             cmd += [output]
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                raise Exception(f"Failed to update tags in {s.media.name} with ffmpeg:\n{result.stderr}")
+                errors = result.stderr.decode('utf-8')
+                raise Exception(f"Failed to update tags in {s.media.name} with ffmpeg:\n{errors}")
             os.replace(output, s.media.path)
 
     def set_new_value(self, new_value):

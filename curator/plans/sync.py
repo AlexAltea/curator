@@ -16,9 +16,7 @@ class SyncPlan(Plan):
 
 class SyncTask(Task):
     def __init__(self, input, output, start, delta):
-        super().__init__(inputs, [output])
-        self.inputs = [input]
-        self.outputs = [output]
+        super().__init__([input], [output])
         self.start = start # Just for debugging
         self.delta = delta
 
@@ -48,7 +46,8 @@ class SyncTask(Task):
             cmd += [output]
             result = subprocess.run(cmd)
             if result.returncode != 0:
-                raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
+                errors = result.stderr.decode('utf-8')
+                raise Exception(f"Failed to sync {self.outputs[0].name} with ffmpeg:\n{errors}")
             os.replace(output, so.media.path)
 
 def plan_sync(media):

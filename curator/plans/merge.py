@@ -36,7 +36,8 @@ class MergeTask(Task):
         cmd += [self.outputs[0].path]
         result = subprocess.run(cmd)
         if result.returncode != 0:
-            raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg")
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg:\n{errors}")
         if self.delete:
             for media in self.inputs:
                 os.remove(media.path)
