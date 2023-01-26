@@ -29,7 +29,7 @@ setuptools.setup(
     author_email='alexandro@phi.nz',
     url=CURATOR_REPOSITORY_URL,
     download_url=CURATOR_DOWNLOAD_URL,
-    packages=['curator', 'curator.plans'],
+    packages=['curator', 'curator.databases', 'curator.plans'],
     entry_points={
         'console_scripts': ['curator=curator.cli:main'],
     },
