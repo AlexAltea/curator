@@ -58,7 +58,8 @@ class Media:
         cmd += ['-of', 'json']
         result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
-            raise Exception(f"Failed get info from {self.path} with ffmpeg")
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed get info from {self.path} with ffmpeg:\n{errors}")
         output = result.stdout.decode('utf-8')
         streams_info = json.loads(output)['streams']
 
@@ -79,7 +80,8 @@ class Media:
         cmd += ['-of', 'json']
         result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
-            raise Exception(f"Failed get info from {self.path} with ffmpeg")
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed get info from {self.path} with ffmpeg:\n{errors}")
         output = result.stdout.decode('utf-8')
         self.info = json.loads(output)['format']
         return self.info

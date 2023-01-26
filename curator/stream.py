@@ -50,7 +50,8 @@ class Stream:
         cmd += ['-of', 'json']
         result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
-            raise Exception(f"Failed get info from {self.path} with ffmpeg")
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed get info from {self.path} with ffmpeg:\n{errors}")
         output = result.stdout.decode('utf-8')
         self.info = json.loads(output)['streams']
         self.info.setdefault('tags', {})
@@ -102,9 +103,10 @@ class Stream:
                 cmd += ['-ss', str(index * duration / num_samples)]
                 cmd += ['-t', str(len_samples)]
                 cmd += [sample]
-                result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                result = subprocess.run(cmd, capture_output=True)
                 if result.returncode != 0:
-                    raise Exception(f"Failed to extract audio sample from {self.media.path} with ffmpeg")
+                    errors = result.stderr.decode('utf-8')
+                    raise Exception(f"Failed to extract audio sample from {self.media.path} with ffmpeg:\n{errors}")
 
                 # Detect language in sample
                 audio = whisper.load_audio(sample)
@@ -178,5 +180,6 @@ class Stream:
             cmd += [output]
             result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if result.returncode != 0:
-                raise Exception(f"Failed to extract subtitles from {path} with ffmpeg")
+                errors = result.stderr.decode('utf-8')
+                raise Exception(f"Failed to extract subtitles from {path} with ffmpeg:\n{errors}")
             return srt_language(output)
