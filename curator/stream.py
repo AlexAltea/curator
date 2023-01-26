@@ -120,8 +120,8 @@ class Stream:
                 if opts['min_score'] <= prob:
                     results.setdefault(lang, []).append(prob)
 
-        # Compute final scores as avg(prob)+votes
-        results = { k: len(v) + sum(v)/len(v) for k, v in results.items()}
+        # Compute final scores as votes+avg(prob)
+        results = { k: len(v) + sum(v)/len(v) for k, v in results.items() }
         if not results:
             return None
 

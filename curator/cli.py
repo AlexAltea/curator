@@ -7,6 +7,7 @@ import pathlib
 import sys
 
 import curator
+from curator.databases import get_database
 
 def confirm(question, default="yes"):
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
@@ -105,11 +106,13 @@ def curator_merge(argv):
 def curator_rename(argv):
     parser = curator_argparser()
     parser.add_argument('-f', '--format', default="@name (@year).@ext")
+    parser.add_argument('-d', '--db', required=False)
     args = curator_args(parser, argv)
 
     from curator.plans import plan_rename
+    db = get_database(args.db) if args.db else None
     media = curator_input(args)
-    plan = plan_rename(media, args.format)
+    plan = plan_rename(media, args.format, db)
     curator_handle_plan(plan, args)
 
 def curator_tag(argv):

@@ -2,6 +2,7 @@ import logging
 import os
 
 from curator.analysis import *
+from curator.databases import *
 from curator import Plan, Task, Media
 
 class RenamePlan(Plan):
@@ -23,24 +24,27 @@ class RenameTask(Task):
         dst = self.outputs[0].path
         os.rename(src, dst)
 
-def plan_rename(media, format):
+def plan_rename(media, format, db=None):
     plan = RenamePlan()
     for m in media:
+        # Detect name and year
+        name = detect_name(m.name)
+        year = detect_year(m.name)
+        if db and (entry := db.query(name, year)):
+            name = entry.get('name')
+            year = entry.get('year')
+        if '@name' in format and not name:
+            logging.warning(f"Could not rename: {m.name} (name not detected)")
+            continue
+        if '@year' in format and not year:
+            logging.warning(f"Could not rename: {m.name} (year not detected)")
+            continue
+
+        # Generate new filename
         filename = format
-        if '@name' in format:
-            name = detect_name(m.name)
-            if name is None:
-                logging.warning(f"Could not rename: {m.name} (name not detected)")
-                continue
-            filename = filename.replace('@name', str(name))
-        if '@year' in format:
-            year = detect_year(m.name)
-            if year is None:
-                logging.warning(f"Could not rename: {m.name} (year not detected)")
-                continue
-            filename = filename.replace('@year', str(year))
-        if '@ext' in format:
-            filename = filename.replace('@ext', m.ext.lower())
+        filename = filename.replace('@name', str(name))
+        filename = filename.replace('@year', str(year))
+        filename = filename.replace('@ext', m.ext.lower())
         if filename != m.name:
             output_path = os.path.join(os.path.dirname(m.path), filename)
             output_media = Media(output_path, Media.TYPE_FILE)

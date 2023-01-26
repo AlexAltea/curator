@@ -1,7 +1,7 @@
 import re
 
 YEAR_MIN = 1800
-YEAR_MAX = 2100
+YEAR_MAX = 2030
 
 def detect_year(name):
     """

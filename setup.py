@@ -44,7 +44,7 @@ setuptools.setup(
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License v2.0',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Natural Language :: English',
     ],
 )
