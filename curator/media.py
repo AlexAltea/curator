@@ -8,7 +8,7 @@ import subprocess
 from .stream import *
 
 # Extensions
-VIDEO_EXTENSIONS = ['avi', 'flv', 'mkv', 'mov', 'mp4', 'mpg', 'wmv']
+VIDEO_EXTENSIONS = ['avi', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpg', 'wmv']
 AUDIO_EXTENSIONS = ['mp3', 'aac', 'ogg']
 TEXTS_EXTENSIONS = ['srt', 'ass']
 
