@@ -23,8 +23,9 @@ class Stream:
         self.media = media
         self.index = index
 
-        # Cache stream information
+        # Cache stream contents
         self.info = info
+        self.packets = None
 
         # Store warnings about the stream
         self.warnings = set()
@@ -44,7 +45,7 @@ class Stream:
     def get_info(self):
         if self.info:
             return self.info
-        cmd = ['ffprobe', self.path]
+        cmd = ['ffprobe', self.media.path]
         cmd += ['-show_streams']
         cmd += ['-select_streams', str(self.index)]
         cmd += ['-of', 'json']
@@ -66,6 +67,21 @@ class Stream:
         if 'duration' in info:
             return float(info['duration'])
         raise Exception("Could not determine stream duration.")
+
+    def get_packets(self):
+        if self.packets:
+            return self.packets
+        cmd = ['ffprobe', self.media.path]
+        cmd += ['-show_packets']
+        cmd += ['-select_streams', str(self.index)]
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed get packets from {self.path} with ffmpeg:\n{errors}")
+        output = result.stdout.decode('utf-8')
+        self.packets = json.loads(output)['packets']
+        return self.packets
 
     def detect_language(self, opts=DEF_OPTS_LANGUAGE):
         opts = DEF_OPTS_LANGUAGE if opts is None else opts
