@@ -44,7 +44,7 @@ class SyncTask(Task):
         with tempfile.TemporaryDirectory(dir=si.media.dir, suffix='.temp-curator-') as tmp:
             output = os.path.join(tmp, f'output.{si.media.ext}')
             cmd += [output]
-            result = subprocess.run(cmd)
+            result = subprocess.run(cmd, capture_output=True)
             if result.returncode != 0:
                 errors = result.stderr.decode('utf-8')
                 raise Exception(f"Failed to sync {self.outputs[0].name} with ffmpeg:\n{errors}")

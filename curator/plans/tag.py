@@ -31,7 +31,7 @@ class TagTask(Task):
         with tempfile.TemporaryDirectory(dir=s.media.dir, suffix='.temp-curator-') as tmp:
             output = os.path.join(tmp, f'output.{s.media.ext}')
             cmd += [output]
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(cmd, capture_output=True)
             if result.returncode != 0:
                 errors = result.stderr.decode('utf-8')
                 raise Exception(f"Failed to update tags in {s.media.name} with ffmpeg:\n{errors}")

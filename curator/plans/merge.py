@@ -34,7 +34,7 @@ class MergeTask(Task):
 
         # Create output file
         cmd += [self.outputs[0].path]
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
             errors = result.stderr.decode('utf-8')
             raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg:\n{errors}")

@@ -3,5 +3,9 @@ class Task:
         self.inputs = inputs
         self.outputs = outputs
         self.enabled = True
-        self.warning = None
+        self.warnings = []
+        self.errors = []
         self.id = None
+
+    def add_warning(self, warning):
+        self.warnings.append(warning)

@@ -49,7 +49,7 @@ def curator_args(parser, argv):
 
 def curator_input(args):
     media = curator.media_input(args.input, recursive=args.r, queries=args.query)
-    logging.info(f'Processing {len(media)} input media files')
+    logging.info(f'Analyzing {len(media)} input media files')
     return media
 
 def curator_handle_plan(plan, args):
@@ -81,6 +81,17 @@ The following commands are supported:
   rename  Rename files according to their metadata.
   tag     Update stream metadata/tags.
 '''.strip()
+
+def curator_convert(argv):
+    parser = curator_argparser()
+    parser.add_argument('-d', '--delete', action='store_true', help='delete inputs after converting')
+    parser.add_argument('-f', '--format', choices=['mkv'], required=True)
+    args = curator_args(parser, argv)
+
+    from curator.plans import plan_convert
+    media = curator_input(args)
+    plan = plan_convert(media, args.format, args.delete)
+    curator_handle_plan(plan, args)
 
 def curator_link(argv):
     parser = curator_argparser()
@@ -146,6 +157,7 @@ def curator_tag(argv):
 
 def main():
     commands = {
+        'convert': curator_convert,
         'link': curator_link,
         'merge': curator_merge,
         'rename': curator_rename,
