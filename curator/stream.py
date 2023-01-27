@@ -94,14 +94,15 @@ class Stream:
 
         results = {}
         with tempfile.TemporaryDirectory() as tmp:
-            ext = self.get_info()['codec_name']
+            fmt = self.media.get_info()['format_name']
             for index in range(num_samples):
                 # Extract sample
-                sample = os.path.join(tmp, f'sample{index:04d}.{ext}')
+                sample = os.path.join(tmp, f'sample{index:04d}.{fmt}')
                 cmd = ['ffmpeg', '-i', self.media.path, '-map', f'0:{self.index}']
                 cmd += ['-c', 'copy']
                 cmd += ['-ss', str(index * duration / num_samples)]
                 cmd += ['-t', str(len_samples)]
+                cmd += ['-f', fmt]
                 cmd += [sample]
                 result = subprocess.run(cmd, capture_output=True)
                 if result.returncode != 0:
