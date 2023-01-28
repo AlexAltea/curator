@@ -36,8 +36,9 @@ class Media:
         self.ext = ext[1:]
 
         # Cache media information
-        self.streams = None
         self.info = None
+        self.streams = None
+        self.packets = None
 
     def has_video_ext(self):
         return self.ext in VIDEO_EXTENSIONS
@@ -47,6 +48,43 @@ class Media:
 
     def has_subtitle_ext(self):
         return self.ext in TEXTS_EXTENSIONS
+
+    def has_video(self):
+        return any(map(lambda s: s.is_video(), self.get_streams()))
+
+    def has_audio(self):
+        return any(map(lambda s: s.is_audio(), self.get_streams()))
+
+    def has_subtitle(self):
+        return any(map(lambda s: s.is_subtitle(), self.get_streams()))
+
+    def get_info(self):
+        if self.info:
+            return self.info
+        cmd = ['ffprobe', self.path]
+        cmd += ['-show_format']
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed to  get info from {self.path} with ffmpeg:\n{errors}")
+        output = result.stdout.decode('utf-8')
+        self.info = json.loads(output)['format']
+        return self.info
+
+    def get_packets(self):
+        if self.packets:
+            return self.packets
+        cmd = ['ffprobe', self.path]
+        cmd += ['-show_packets']
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed to get packets from {self.path} with ffmpeg:\n{errors}")
+        output = result.stdout.decode('utf-8')
+        self.packets = json.loads(output)['packets']
+        return self.packets
 
     def get_streams(self):
         if self.streams is not None:
@@ -71,20 +109,6 @@ class Media:
             streams.append(stream)
         self.streams = streams
         return streams
-
-    def get_info(self):
-        if self.info:
-            return self.info
-        cmd = ['ffprobe', self.path]
-        cmd += ['-show_format']
-        cmd += ['-of', 'json']
-        result = subprocess.run(cmd, capture_output=True)
-        if result.returncode != 0:
-            errors = result.stderr.decode('utf-8')
-            raise Exception(f"Failed get info from {self.path} with ffmpeg:\n{errors}")
-        output = result.stdout.decode('utf-8')
-        self.info = json.loads(output)['format']
-        return self.info
 
     def num_streams():
         return len(get_streams())

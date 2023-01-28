@@ -23,7 +23,7 @@ class Stream:
         self.media = media
         self.index = index
 
-        # Cache stream contents
+        # Cache stream information
         self.info = info
         self.packets = None
 
@@ -31,7 +31,7 @@ class Stream:
         self.warnings = set()
 
     def __repr__(self):
-        return f'Stream("{self.path}", index={self.index})'
+        return f'Stream("{self.media.path}", index={self.index})'
 
     def is_video(self):
         return self.get_info()['codec_type'] == 'video'
@@ -52,7 +52,7 @@ class Stream:
         result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
             errors = result.stderr.decode('utf-8')
-            raise Exception(f"Failed get info from {self.path} with ffmpeg:\n{errors}")
+            raise Exception(f"Failed to get info from {self} with ffmpeg:\n{errors}")
         output = result.stdout.decode('utf-8')
         self.info = json.loads(output)['streams']
         self.info.setdefault('tags', {})
@@ -78,10 +78,26 @@ class Stream:
         result = subprocess.run(cmd, capture_output=True)
         if result.returncode != 0:
             errors = result.stderr.decode('utf-8')
-            raise Exception(f"Failed get packets from {self.path} with ffmpeg:\n{errors}")
+            raise Exception(f"Failed to get packets from {self} with ffmpeg:\n{errors}")
         output = result.stdout.decode('utf-8')
         self.packets = json.loads(output)['packets']
         return self.packets
+
+    def get_packet(self, index):
+        if self.packets:
+            return self.packets[index]
+        cmd = ['ffprobe', self.media.path]
+        cmd += ['-show_packets']
+        cmd += ['-select_streams', str(self.index)]
+        cmd += ['-read_intervals', f'%+#{index+1}']
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed to get packets from {self} with ffmpeg:\n{errors}")
+        output = result.stdout.decode('utf-8')
+        packet = json.loads(output)['packets'][index]
+        return packet
 
     def detect_language(self, opts=DEF_OPTS_LANGUAGE):
         opts = DEF_OPTS_LANGUAGE if opts is None else opts

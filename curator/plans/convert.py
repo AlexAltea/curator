@@ -50,11 +50,6 @@ class ConvertTask(Task):
     def add_flag(self, flag):
         self.flags.add(flag)
 
-def check_stream_pts(stream):
-    for packet in stream.get_packets():
-        if 'pts' not in packet:
-            return False
-
 def plan_convert(media, format, delete=False):
     plan = ConvertPlan()
     for m in media:
@@ -65,9 +60,8 @@ def plan_convert(media, format, delete=False):
             continue
         output_media = Media(output_path, Media.TYPE_FILE)
         task = ConvertTask(m, output_media, format, delete)
-        for stream in m.get_streams():
-            if not check_stream_pts(stream):
-                task.add_warning(f'Stream #{stream.index} contains packets without PTS data')
-                task.add_flag('+genpts')
+        if m.get_info()['format_name'] == 'avi' and m.has_video():
+            task.add_warning(f'Media contains packets without PTS data')
+            task.add_flag('+genpts')
         plan.add_task(task)
     return plan
