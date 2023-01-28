@@ -3,6 +3,7 @@ import os
 import subprocess
 
 from curator import Plan, Task, Media
+from curator.util import flatten
 
 class ConvertPlan(Plan):
     def show_tasks(self):
@@ -18,19 +19,22 @@ class ConvertTask(Task):
         assert(output.type == Media.TYPE_FILE)
         self.format = format
         self.delete = delete
-        self.flags = set()
+        self.fflags = set()
+        self.cflags = set()
 
     def apply(self):
         # Build ffmpeg command
         cmd = ['ffmpeg']
-        if self.flags:
-            cmd += ['-fflags', ''.join(self.flags)]
+        if self.fflags:
+            cmd += ['-fflags', ''.join(self.fflags)]
         cmd += ['-i', self.inputs[0].path]
         cmd += ['-c:v', 'copy']
         cmd += ['-c:a', 'copy']
         cmd += ['-c:s', 'copy']
         cmd += ['-c:d', 'copy']
         cmd += ['-c:t', 'copy']
+        if self.cflags:
+            cmd += flatten(self.cflags)
         cmd += ['-map', '0']
         cmd += ['-map_metadata', '0']
         cmd += ['-movflags', 'use_metadata_tags']
@@ -47,8 +51,11 @@ class ConvertTask(Task):
         if self.delete:
             os.remove(self.inputs[0].path)
 
-    def add_flag(self, flag):
-        self.flags.add(flag)
+    def add_fflag(self, flag):
+        self.fflags.add(flag)
+
+    def add_cflag(self, flag):
+        self.cflags.add(flag)
 
 def plan_convert(media, format, delete=False):
     plan = ConvertPlan()
@@ -60,8 +67,16 @@ def plan_convert(media, format, delete=False):
             continue
         output_media = Media(output_path, Media.TYPE_FILE)
         task = ConvertTask(m, output_media, format, delete)
+
+        # Tweaks for mismatching formats
         if m.get_info()['format_name'] == 'avi' and m.has_video():
-            task.add_warning(f'Media contains packets without PTS data')
-            task.add_flag('+genpts')
+            task.add_warning(f'Media contains packets without PTS data.')
+            task.add_fflag('+genpts')
+        if format == 'mkv':
+            for stream in m.get_streams():
+                if stream.get_info()['codec_name'] == "mov_text":
+                    task.add_warning(f'Conversion requires reencoding {stream}. Styles will be removed.')
+                    task.add_cflag(('-c:s', 'text'))
+
         plan.add_task(task)
     return plan
