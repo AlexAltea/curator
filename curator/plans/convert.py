@@ -21,6 +21,7 @@ class ConvertTask(Task):
         self.delete = delete
         self.fflags = set()
         self.cflags = set()
+        self.mflags = set()
 
     def apply(self):
         # Build ffmpeg command
@@ -36,6 +37,9 @@ class ConvertTask(Task):
         if self.cflags:
             cmd += flatten(self.cflags)
         cmd += ['-map', '0']
+        if self.mflags:
+            print(f'{self.inputs[0]} has MP4 data')
+            cmd += flatten(self.mflags)
         cmd += ['-map_metadata', '0']
         cmd += ['-movflags', 'use_metadata_tags']
 
@@ -57,6 +61,9 @@ class ConvertTask(Task):
     def add_cflag(self, flag):
         self.cflags.add(flag)
 
+    def add_mflag(self, flag):
+        self.mflags.add(flag)
+
 def plan_convert(media, format, delete=False):
     plan = ConvertPlan()
     for m in media:
@@ -76,7 +83,13 @@ def plan_convert(media, format, delete=False):
             for stream in m.get_streams():
                 if stream.get_info()['codec_name'] == "mov_text":
                     task.add_warning(f'Conversion requires reencoding {stream}. Styles will be removed.')
-                    task.add_cflag(('-c:s', 'text'))
+                    task.add_cflag(('-c:s', 'text'))            
+        if format == 'mkv':
+            for stream in m.get_streams():
+                if stream.get_info()['codec_type'] == "data" and \
+                   stream.get_info()['tags']['handler_name'] == "SubtitleHandler":
+                    task.add_warning('Chapters have been included in {stream}. Stream will be dropped, but chapters might be carried over by ffmpeg.')
+                    task.add_mflag(('-map', f'-0:{stream.index}'))
 
         plan.add_task(task)
     return plan
