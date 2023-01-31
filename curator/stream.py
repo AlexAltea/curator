@@ -42,6 +42,15 @@ class Stream:
     def is_subtitle(self):
         return self.get_info()['codec_type'] == 'subtitle'
 
+    def video_index(self):
+        return len([s for s in self.media.get_streams()[:self.index] if s.is_video()])
+
+    def audio_index(self):
+        return len([s for s in self.media.get_streams()[:self.index] if s.is_audio()])
+
+    def subtitle_index(self):
+        return len([s for s in self.media.get_streams()[:self.index] if s.is_subtitle()])
+
     def get_info(self):
         if self.info:
             return self.info

@@ -9,3 +9,7 @@ class Task:
 
     def add_warning(self, warning):
         self.warnings.append(warning)
+
+    def add_error(self, error):
+        self.errors.append(error)
+        self.enabled = False
