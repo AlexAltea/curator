@@ -2,6 +2,7 @@ import collections
 import json
 import logging
 import os
+import re
 import subprocess
 import tempfile
 
@@ -50,6 +51,19 @@ class Stream:
 
     def subtitle_index(self):
         return len([s for s in self.media.get_streams()[:self.index] if s.is_subtitle()])
+
+    def has_packed_bframes(self):
+        packet = self.get_packet(0)
+        packet_offs = int(packet['pos'])
+        packet_size = int(packet['size'])
+        with open(self.media.path, 'rb') as f:
+            f.seek(packet_offs)
+            data = f.read(packet_size)
+        match1 = re.search(br'\x00\x00\x01\xB2DivX(\d+)b(\d+)p', data)
+        match2 = re.search(br'\x00\x00\x01\xB2DivX(\d+)Build(\d+)p', data)
+        if match1 or match2:
+            return True
+        return False
 
     def get_info(self):
         if self.info:

@@ -58,6 +58,14 @@ class Media:
     def has_subtitle(self):
         return any(map(lambda s: s.is_subtitle(), self.get_streams()))
 
+    def has_packed_bframes(self):
+        if self.get_info()['format_name'] != 'avi':
+            return False
+        for stream in self.get_streams():
+            if stream.is_video() and stream.has_packed_bframes():
+                return True
+        return False
+
     def get_info(self):
         if self.info:
             return self.info

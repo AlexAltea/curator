@@ -79,6 +79,9 @@ def plan_convert(media, format, delete=False):
         if m.get_info()['format_name'] == 'avi' and m.has_video():
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
+        if m.has_packed_bframes():
+            task.add_cflag(('-bsf:v', 'mpeg4_unpack_bframes'))
+            task.add_warning(f'Media contains packed B-frames. Unpacking is required.')
         if format == 'mkv':
             for stream in m.get_streams():
                 if stream.get_info()['codec_name'] == "mov_text":
