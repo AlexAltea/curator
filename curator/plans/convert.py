@@ -62,7 +62,6 @@ class ConvertTask(Task):
             cmd += ['-bsf:v', 'mpeg4_unpack_bframes']
         cmd += ['-map', '0']
         if self.mflags:
-            print(f'{self.inputs[0]} has MP4 data')
             cmd += flatten(self.mflags)
         cmd += ['-map_metadata', '0']
         cmd += ['-movflags', 'use_metadata_tags']

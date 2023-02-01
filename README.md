@@ -43,7 +43,7 @@ Update filenames according to a pattern made of the following variables:
 |---------|-------------|
 | `@name` | Localized name of the media. |
 | `@year` | Year the media was released. |
-| `@tags` | Tags present in the input media filename enclosed by square brackets. |
+| `@tags` | Tags present in the input media filename enclosed by square brackets, if any. |
 | `@ext`  | File extension of the input media. |
 
 ![example-curator-rename](./docs/images/curator-rename.svg)
