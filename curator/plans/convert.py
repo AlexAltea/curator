@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+import tempfile
 
 from curator import Plan, Task, Media
 from curator.util import flatten
@@ -22,13 +23,34 @@ class ConvertTask(Task):
         self.fflags = set()
         self.cflags = set()
         self.mflags = set()
+        self.unpack_bframes = False
 
     def apply(self):
+        # Solve conflict when -fflags +genpts and -bsf:v mpeg4_unpack_bframes are both enabled
+        input_media = self.inputs[0].path
+        if self.unpack_bframes and '+genpts' in self.fflags:
+            temp = tempfile.TemporaryDirectory(dir=self.inputs[0].dir, suffix='.temp-curator-')
+            fixed_media = os.path.join(temp.name, "media.avi")
+            cmd = ['ffmpeg']
+            cmd += ['-i', input_media]
+            cmd += ['-c:v', 'copy']
+            cmd += ['-c:a', 'copy']
+            cmd += ['-bsf:v', 'mpeg4_unpack_bframes']
+            cmd += ['-map', '0']
+            cmd += ['-map_metadata', '0']
+            cmd += ['-movflags', 'use_metadata_tags']
+            cmd += [fixed_media]
+            result = subprocess.run(cmd, capture_output=True)
+            if result.returncode != 0:
+                errors = result.stderr.decode('utf-8')
+                raise Exception(f"Failed to generate PTS in {output} with ffmpeg:\n{errors}")
+            input_media = fixed_media
+
         # Build ffmpeg command
         cmd = ['ffmpeg']
         if self.fflags:
             cmd += ['-fflags', ''.join(self.fflags)]
-        cmd += ['-i', self.inputs[0].path]
+        cmd += ['-i', input_media]
         cmd += ['-c:v', 'copy']
         cmd += ['-c:a', 'copy']
         cmd += ['-c:s', 'copy']
@@ -36,6 +58,8 @@ class ConvertTask(Task):
         cmd += ['-c:t', 'copy']
         if self.cflags:
             cmd += flatten(self.cflags)
+        if self.unpack_bframes and '+genpts' not in self.fflags:
+            cmd += ['-bsf:v', 'mpeg4_unpack_bframes']
         cmd += ['-map', '0']
         if self.mflags:
             print(f'{self.inputs[0]} has MP4 data')
@@ -80,7 +104,7 @@ def plan_convert(media, format, delete=False):
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
         if m.has_packed_bframes():
-            task.add_cflag(('-bsf:v', 'mpeg4_unpack_bframes'))
+            task.unpack_bframes = True
             task.add_warning(f'Media contains packed B-frames. Unpacking is required.')
         if format == 'mkv':
             for stream in m.get_streams():
