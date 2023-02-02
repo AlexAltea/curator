@@ -29,7 +29,7 @@ class ConvertTask(Task):
         # Solve conflict when -fflags +genpts and -bsf:v mpeg4_unpack_bframes are both enabled
         input_media = self.inputs[0].path
         if self.unpack_bframes and '+genpts' in self.fflags:
-            temp = tempfile.TemporaryDirectory(dir=self.inputs[0].dir, suffix='.temp-curator-')
+            temp = tempfile.TemporaryDirectory(dir=self.inputs[0].dir, prefix='.temp-curator-')
             fixed_media = os.path.join(temp.name, "media.avi")
             cmd = ['ffmpeg']
             cmd += ['-i', input_media]

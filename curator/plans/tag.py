@@ -37,7 +37,7 @@ class TagTask(Task):
                 raise Exception("RIFF IASx tags should only support up to 9 audio tracks")
             cmd += ['-metadata', f'IAS{audio_index + 1}={self.new_value}']
 
-        with tempfile.TemporaryDirectory(dir=s.media.dir, suffix='.temp-curator-') as tmp:
+        with tempfile.TemporaryDirectory(dir=s.media.dir, prefix='.temp-curator-') as tmp:
             output = os.path.join(tmp, f'output.{s.media.ext}')
             cmd += [output]
             result = subprocess.run(cmd, capture_output=True)

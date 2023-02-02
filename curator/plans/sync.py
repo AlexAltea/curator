@@ -41,7 +41,7 @@ class SyncTask(Task):
                 cmd += ['-map', f'0:{i}']
 
         # Generate and replace from temporary directory
-        with tempfile.TemporaryDirectory(dir=si.media.dir, suffix='.temp-curator-') as tmp:
+        with tempfile.TemporaryDirectory(dir=si.media.dir, prefix='.temp-curator-') as tmp:
             output = os.path.join(tmp, f'output.{si.media.ext}')
             cmd += [output]
             result = subprocess.run(cmd, capture_output=True)
