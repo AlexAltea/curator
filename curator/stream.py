@@ -26,6 +26,7 @@ class Stream:
 
         # Cache stream information
         self.info = info
+        self.frames = None
         self.packets = None
 
         # Store warnings about the stream
@@ -90,6 +91,21 @@ class Stream:
         if 'duration' in info:
             return float(info['duration'])
         raise Exception("Could not determine stream duration.")
+
+    def get_frames(self):
+        if self.frames:
+            return self.frames
+        cmd = ['ffprobe', self.media.path]
+        cmd += ['-show_frames']
+        cmd += ['-select_streams', str(self.index)]
+        cmd += ['-of', 'json']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed to get frames from {self} with ffmpeg:\n{errors}")
+        output = result.stdout.decode('utf-8')
+        self.frames = json.loads(output)['frames']
+        return self.frames
 
     def get_packets(self):
         if self.packets:

@@ -102,6 +102,8 @@ def plan_convert(media, format, delete=False):
         if m.get_info()['format_name'] == 'avi' and m.has_video():
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
+        if m.get_info()['format_name'] == 'avi' and m.has_video_codec('h264'):
+            task.add_error(f'Media contains H264-in-AVI. Unpacking is required, but not supported.')
         if m.has_packed_bframes():
             task.unpack_bframes = True
             task.add_warning(f'Media contains packed B-frames. Unpacking is required.')
