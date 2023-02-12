@@ -36,6 +36,7 @@ def plan_rename(media, format, db=None, keep_tags=False):
         if db and (entry := db.query(name, year)):
             name = entry.get('name')
             year = entry.get('year')
+            oname = entry.get('oname')
             source = db.name
         if '@name' in format and not name:
             logging.warning(f"Could not rename: {m.name} (name not detected)")
@@ -43,10 +44,14 @@ def plan_rename(media, format, db=None, keep_tags=False):
         if '@year' in format and not year:
             logging.warning(f"Could not rename: {m.name} (year not detected)")
             continue
+        if '@oname' in format and not oname:
+            logging.warning(f"Could not rename: {m.name} (original name not found)")
+            continue
 
         # Generate new filename
         filename = format
         filename = filename.replace('@name', str(name))
+        filename = filename.replace('@oname', str(oname))
         filename = filename.replace('@year', str(year))
         filename = filename.replace('@ext', m.ext.lower())
         filename = filename.replace('@tags',

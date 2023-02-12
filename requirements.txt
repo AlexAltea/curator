@@ -2,6 +2,7 @@ arrow==1.2.3
 chardet==3.0.4
 iso639-lang==2.1.0
 langid==1.1.6
+milli==1.0.0
 numpy>=1.21.6
 openai-whisper==20230117
 pandas==1.5.3

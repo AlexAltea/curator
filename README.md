@@ -39,12 +39,13 @@ Below you can find a description and examples of all tools provided by Curator:
 
 Update filenames according to a pattern made of the following variables:
 
-| Key     | Description |
-|---------|-------------|
-| `@name` | Localized name of the media. |
-| `@year` | Year the media was released. |
-| `@tags` | Tags present in the input media filename enclosed by square brackets, if any. |
-| `@ext`  | File extension of the input media. |
+| Key      | Description |
+|----------|-------------|
+| `@ext`   | File extension of the input media. |
+| `@name`  | Localized name of the media. |
+| `@oname` | Original name of the media (needs database). |
+| `@tags`  | Tags present in the input media filename enclosed by square brackets, if any. |
+| `@year`  | Year the media was released. |
 
 ![example-curator-rename](./docs/images/curator-rename.svg)
 
