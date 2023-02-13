@@ -20,7 +20,7 @@ class OmdbDatabase(Database):
         cache_name = f'index_milli_{suffix}'
         cache_path = os.path.join(self.cache, cache_name)
         if os.path.exists(cache_path):
-            self.ix = milli.Index(cache_path, 1024*1024*1024)
+            self.ix = milli.Index(cache_path, 1024*1024*1024) # 1 GiB
             return
 
         # Otherwise create one
@@ -41,7 +41,7 @@ class OmdbDatabase(Database):
             movie = movies.setdefault(movie_id, { 'id': movie_id, 'aliases': [] })
             movie['aliases'].append(row['name'])
         os.mkdir(cache_path)
-        self.ix = milli.Index(cache_path, 1024*1024*1024) # 1GB
+        self.ix = milli.Index(cache_path, 1024*1024*1024) # 1 GiB
         self.ix.add_documents(list(movies.values()))
 
     def get_omdb_dataset(self, name):
@@ -66,6 +66,6 @@ class OmdbDatabase(Database):
         movie = self.ix.get_document(results[0])
         return {
             'name': name,
-            'oname': movie['name'],
-            'year': movie['year'],
+            'oname': movie.get('name'),
+            'year': movie.get('year'),
         }
