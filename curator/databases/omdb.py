@@ -31,7 +31,7 @@ class OmdbDatabase(Database):
         for row in csv1:
             movie_id = int(row['id'])
             movies[movie_id] = {
-                'id': int(row['id']),
+                'id': movie_id,
                 'name': row['name'],
                 'year': row['date'][:4],
                 'aliases': [],
