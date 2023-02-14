@@ -108,10 +108,10 @@ class ImdbDatabase(Database):
         movies = self.ix.get_documents(results)
         for movie in movies:
             titles = [movie['name']] + movie['akas']
-            score = min(map(lambda title: textdistance.levenshtein(title, name), titles))
+            distance = min(map(lambda title: textdistance.levenshtein(title, name), titles))
             popularity = math.log10(movie['votes'] + 1)
             movie['score'] = popularity - distance
-        movie = min(movies, key=lambda m: m['score'])
+        movie = max(movies, key=lambda m: m['score'])
         return {
             'name': name,
             'oname': movie.get('name'),
