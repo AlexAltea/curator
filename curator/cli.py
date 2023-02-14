@@ -98,14 +98,12 @@ def curator_rename(argv):
     parser = curator_argparser()
     parser.add_argument('-f', '--format', default="@name (@year).@ext")
     parser.add_argument('-d', '--db', required=False)
-    parser.add_argument('--keep-tags', action='store_true',
-        help='keep filename tags in square brackets, e.g. [imdbid-tt1234567].')
     args = curator_args(parser, argv)
 
     from curator.plans import plan_rename
     db = get_database(args.db) if args.db else None
     media = curator_input(args)
-    plan = plan_rename(media, args.format, db, args.keep_tags)
+    plan = plan_rename(media, args.format, db)
     curator_handle_plan(plan, args)
 
 def curator_tag(argv):

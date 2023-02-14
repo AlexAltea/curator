@@ -25,13 +25,26 @@ class RenameTask(Task):
         dst = self.outputs[0].path
         os.rename(src, dst)
 
-def plan_rename(media, format, db=None, keep_tags=False):
+def normalize(filename):
+    replacements = [
+        (r'(\w): ',  r'\1 - '),  # Remove colons when used as separators
+        (r'\.\.\.',  r''),       # Remove ellipsis
+        (r' vs\. ',  r' vs '),   # Remove versus period
+        (r' 1/3 ',   r' ⅓ '),    # Convert to vulgar fractions
+        (r'/',       r'-'),      # Remove slashes
+    ]
+    for pattern, replacement in replacements:
+        filename = re.sub(pattern, replacement, filename)
+    return filename
+
+def plan_rename(media, format, db=None):
     plan = RenamePlan()
     for m in media:
         # Detect name, year and tags
         name = detect_name(m.name)
         year = detect_year(m.name)
         tags = detect_tags(m.name)
+        oname = None
         source = "analysis"
         if db and (entry := db.query(name, year)):
             name = entry.get('name')
@@ -52,6 +65,7 @@ def plan_rename(media, format, db=None, keep_tags=False):
         filename = format
         filename = filename.replace('@name', str(name))
         filename = filename.replace('@oname', str(oname))
+        filename = normalize(filename)
         filename = filename.replace('@year', str(year))
         filename = filename.replace('@ext', m.ext.lower())
         filename = filename.replace('@tags',

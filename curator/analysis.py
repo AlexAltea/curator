@@ -37,6 +37,7 @@ def detect_name(name, year=None):
     # Normalize scene releases
     if not ' ' in name:
         name = name.replace('.', ' ')
+        name = name.replace('_', ' ')
     # Extract matching left-starting pattern as name
     match = re.match(r'[\w\s\-\']+', name)
     if match:

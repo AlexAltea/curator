@@ -9,6 +9,7 @@ import os
 import arrow
 import milli
 import requests
+import textdistance
 
 from curator import Database
 from curator.util import confirm
@@ -54,11 +55,12 @@ class ImdbDatabase(Database):
 
         # Otherwise create one
         logging.info("Creating movie index...")
-        title_basics = self.get_imdb_dataset('title.basics')
         title_akas = self.get_imdb_dataset('title.akas')
+        title_basics = self.get_imdb_dataset('title.basics')
+        title_ratings = self.get_imdb_dataset('title.ratings')
         movies = {}
         for row in title_basics:
-            if row['titleType'] != 'movie':
+            if row['titleType'] != 'movie' or row['startYear'] == '\\N':
                 continue
             movie_id = row['tconst']
             movies[movie_id] = {
@@ -66,6 +68,7 @@ class ImdbDatabase(Database):
                 'name': row['primaryTitle'],
                 'year': row['startYear'],
                 'akas': [],
+                'popularity': 0,
             }
         for row in title_akas:
             movie_id = row['titleId']
@@ -73,9 +76,14 @@ class ImdbDatabase(Database):
             if movie is None:
                 continue
             movie['akas'].append(row['title'])
+        for row in title_ratings:
+            movie_id = row['tconst']
+            movie = movies.get(movie_id)
+            if movie is None:
+                continue
+            movie['votes'] = int(row['numVotes'])
         os.mkdir(cache_path)
         self.ix = milli.Index(cache_path, 4*1024*1024*1024) # 4 GiB
-        print(len(movies))
         self.ix.add_documents(list(movies.values()))
 
     def get_imdb_dataset(self, name):
@@ -97,7 +105,13 @@ class ImdbDatabase(Database):
         results = self.ix.search(name)
         if not results:
             return None
-        movie = self.ix.get_document(results[0])
+        movies = self.ix.get_documents(results)
+        for movie in movies:
+            titles = [movie['name']] + movie['akas']
+            score = min(map(lambda title: textdistance.levenshtein(title, name), titles))
+            popularity = math.log10(movie['votes'] + 1)
+            movie['score'] = popularity - distance
+        movie = min(movies, key=lambda m: m['score'])
         return {
             'name': name,
             'oname': movie.get('name'),
