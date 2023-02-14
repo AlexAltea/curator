@@ -13,6 +13,12 @@ Install the package via:
 pip install git+https://github.com/AlexAltea/curator.git
 ```
 
+## Credits
+
+Acknowledgements to people who contributed code/ideas to the project:
+
+- [Victor Garcia Herrero](https://github.com/VictGH): Mathematician, Machine Learning expert and tamer of scoring functions.
+
 ## Features
 
 Curator can automatically rename and link media files, edit container metadata, remux and merge streams. Reducing manual labor and achieve reliable results across different media from potentially different sources, some tools rely on signal processing and machine learning (e.g. [Whisper](https://openai.com/blog/whisper/), [LangID](https://github.com/saffsd/langid.py)).
