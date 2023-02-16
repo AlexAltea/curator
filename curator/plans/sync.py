@@ -4,21 +4,27 @@ import subprocess
 from curator import Plan, Task, Media
 
 class SyncPlan(Plan):
-    def show_tasks(self):
-        thead = ("Input", "Old start", "+", "Delta", "→", "New start")
-        tbody = []
-        for task in self.tasks:
-            t0 = self.start
-            t1 = self.start + self.delta
-            dt = self.delta
-            tbody.append((task.inputs[0].name, t0, "+", dt, "→", t1))
-        return thead, tbody
+    def columns(self):
+        return [
+            { 'name': 'Input', 'width': '100%' },
+            { 'name': 'Old start', 'width': '9' },
+            { 'name': '+', 'width': '1' },
+            { 'name': 'Delta', 'width': '9' },
+            { 'name': '→', 'width': '1' },
+            { 'name': "New start", 'width': '9' },
+        ]
 
 class SyncTask(Task):
     def __init__(self, input, output, start, delta):
         super().__init__([input], [output])
         self.start = start # Just for debugging
         self.delta = delta
+
+    def view(self):
+        t0 = self.start
+        t1 = self.start + self.delta
+        dt = self.delta
+        return [(self.inputs[0].name, t0, "+", dt, "→", t1)]
 
     def apply(self):
         si = self.inputs[0]

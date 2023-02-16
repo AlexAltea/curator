@@ -4,20 +4,24 @@ import subprocess
 from curator import Plan, Task, Media
 
 class MergePlan(Plan):
-    def show_tasks(self):
-        thead = ("Inputs", "→", "Output")
-        tbody = []
-        for task in self.tasks:
-            tbody.append((task.inputs[0].name, "→", task.outputs[0].name))
-            for minput in task.inputs[1:]:
-                tbody.append((minput.name, "↗", ""))
-        return thead, tbody
+    def columns(self):
+        return [
+            { 'name': 'Inputs', 'width': '50%' },
+            { 'name': '→', 'width': '1' },
+            { 'name': "Output", 'width': '50%' },
+        ]
 
 class MergeTask(Task):
     def __init__(self, inputs, output, format, delete):
         super().__init__(inputs, [output])
         self.format = format
         self.delete = delete
+
+    def view(self):
+        rows = [(self.inputs[0].name, "→", self.outputs[0].name)]
+        for m in self.inputs[1:]:
+            rows.append((m.name, "↗", ""))
+        return rows
     
     def apply(self):
         # Build ffmpeg command

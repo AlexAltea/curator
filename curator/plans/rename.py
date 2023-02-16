@@ -6,19 +6,23 @@ from curator.databases import *
 from curator import Plan, Task, Media
 
 class RenamePlan(Plan):
-    def show_tasks(self):
-        thead = ("Old", "Source", "→", "New")
-        tbody = []
-        for task in self.tasks:
-            name_input = task.inputs[0].name
-            name_output = task.outputs[0].name
-            tbody.append((name_input, task.source, "→", name_output))
-        return thead, tbody
+    def columns(self):
+        return [
+            { 'name': 'Old', 'width': '50%' },
+            { 'name': 'Source', 'width': '8' },
+            { 'name': '→', 'width': '1' },
+            { 'name': "New", 'width': '50%' },
+        ]
 
 class RenameTask(Task):
     def __init__(self, input, output, source):
         super().__init__([input], [output])
         self.source = source
+
+    def view(self):
+        name_input = self.inputs[0].name
+        name_output = self.outputs[0].name
+        return [(name_input, self.source, "→", name_output)]
 
     def apply(self):
         src = self.inputs[0].path

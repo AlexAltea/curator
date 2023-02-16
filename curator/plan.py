@@ -1,5 +1,8 @@
 from .tui import *
 
+# Configuration
+DEFAULT_UI_BACKEND = 'tui'
+
 class Plan:
     def __init__(self):
         self.tasks = []
@@ -8,6 +11,12 @@ class Plan:
     def __iter__(self):
         for task in self.tasks:
             yield task
+
+    def __len__(self):
+        return len(self.tasks)
+
+    def __getitem__(self, index):
+        return self.tasks[index]
 
     def is_empty(self):
         return len(self.tasks) == 0
@@ -26,3 +35,15 @@ class Plan:
         thead, tbody = self.show_tasks()
         tbody = list(map(lambda row: tuple(map(str, row)), tbody))
         print_plan(thead, tbody)
+
+    def show_tasks(self):
+        thead = tuple(map(lambda c: c['name'], self.columns()))
+        tbody = []
+        for task in self.tasks:
+            tbody += task.view()
+        return thead, tbody
+
+    def edit(self, backend=DEFAULT_UI_BACKEND):
+        if backend == 'tui':
+            app = EditorApp(self)
+            app.run()

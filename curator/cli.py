@@ -46,10 +46,11 @@ def curator_handle_plan(plan, args):
         plan.apply()
         return
     # Interactive mode (default)
-    #plan.edit() # TODO
-    plan.show()
-    if confirm("Continue?", default="no"):
-        plan.apply()
+    plan.edit()
+    tasks_enabled = len([t for t in plan if t.enabled])
+    print(f"After changes, the current plan has {tasks_enabled} tasks enabled out of {len(plan)}.")
+    if confirm("Apply plan?", default="no"):
+        return plan.apply()
 
 # Usage
 CURATOR_USAGE = '''

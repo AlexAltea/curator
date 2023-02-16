@@ -7,12 +7,12 @@ from curator import Plan, Task, Media
 from curator.util import flatten
 
 class ConvertPlan(Plan):
-    def show_tasks(self):
-        thead = ("Inputs", "→", "Output")
-        tbody = []
-        for task in self.tasks:
-            tbody.append((task.inputs[0].name, "→", task.outputs[0].name))
-        return thead, tbody
+    def columns(self):
+        return [
+            { 'name': 'Inputs', 'width': '50%' },
+            { 'name': '→', 'width': '1' },
+            { 'name': "Output", 'width': '50%' },
+        ]
 
 class ConvertTask(Task):
     def __init__(self, input, output, format, delete=False):
@@ -24,6 +24,9 @@ class ConvertTask(Task):
         self.cflags = set()
         self.mflags = set()
         self.unpack_bframes = False
+
+    def view(self):
+        return [(self.inputs[0].name, "→", self.outputs[0].name)]
 
     def apply(self):
         # Solve conflict when -fflags +genpts and -bsf:v mpeg4_unpack_bframes are both enabled

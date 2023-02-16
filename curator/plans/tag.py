@@ -5,13 +5,14 @@ import tempfile
 from curator import Plan, Task, Media
 
 class TagPlan(Plan):
-    def show_tasks(self):
-        thead = ("Name", "Stream", "Old tag", "→", "New tag")
-        tbody = []
-        for task in self.tasks:
-            s = task.inputs[0]
-            tbody.append((s.media.name, s.index, task.old_value, "→", task.new_value))
-        return thead, tbody
+    def columns(self):
+        return [
+            { 'name': 'Name', 'width': '50%' },
+            { 'name': 'Stream', 'width': '6' },
+            { 'name': "New", 'width': '25%' },
+            { 'name': '→', 'width': '1' },
+            { 'name': "New", 'width': '25%' },
+        ]
 
 class TagTask(Task):
     def __init__(self, input, tag, old_value, new_value=None):
@@ -19,6 +20,10 @@ class TagTask(Task):
         self.tag = tag
         self.old_value = old_value
         self.new_value = new_value
+
+    def view(self):
+        s = self.inputs[0]
+        return [(s.media.name, s.index, self.old_value, "→", self.new_value)]
 
     def apply(self):
         s = self.inputs[0]

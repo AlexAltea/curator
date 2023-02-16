@@ -3,18 +3,18 @@ import os
 from curator import Plan, Task, Media
 
 class LinkPlan(Plan):
-    def show_tasks(self):
-        thead = ("Name",)
-        tbody = []
-        for task in self.tasks:
-            name = task.inputs[0].name
-            tbody.append((name,))
-        return thead, tbody
+    def columns(self):
+        return [
+            { 'name': 'Name', 'width': '100%' },
+        ]
 
 class LinkTask(Task):
     def __init__(self, input, output):
         super().__init__([input], [output])
         assert(output.type == Media.TYPE_LINK)
+
+    def view(self):
+        return [(self.inputs[0].name,)]
 
     def apply(self):
         src = self.inputs[0].path
