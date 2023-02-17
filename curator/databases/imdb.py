@@ -106,6 +106,10 @@ class ImdbDatabase(Database):
         if not results:
             return None
         movies = self.ix.get_documents(results)
+        if year is not None:
+            movies = list(filter(lambda m: m['year'] == str(year), movies))
+        if not movies:
+            return None
         for movie in movies:
             titles = [movie['name']] + movie['akas']
             distance = min(map(lambda title: textdistance.levenshtein(title, name), titles))

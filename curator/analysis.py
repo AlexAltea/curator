@@ -39,7 +39,7 @@ def detect_name(name, year=None):
         name = name.replace('.', ' ')
         name = name.replace('_', ' ')
     # Extract matching left-starting pattern as name
-    match = re.match(r'[\w\s\-\']+', name)
+    match = re.match(r'[\w\s\,\.\-\'\&]+', name)
     if match:
         return match[0].strip()
     return None
