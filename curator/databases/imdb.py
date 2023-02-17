@@ -68,7 +68,7 @@ class ImdbDatabase(Database):
                 'name': row['primaryTitle'],
                 'year': row['startYear'],
                 'akas': [],
-                'popularity': 0,
+                'votes': 0,
             }
         for row in title_akas:
             movie_id = row['titleId']
@@ -116,4 +116,5 @@ class ImdbDatabase(Database):
             'name': name,
             'oname': movie.get('name'),
             'year': movie.get('year'),
+            'dbid': 'imdbid-' + movie.get('id'),
         }

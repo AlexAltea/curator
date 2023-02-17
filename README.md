@@ -48,6 +48,7 @@ Update filenames according to a pattern made of the following variables:
 | Key      | Description |
 |----------|-------------|
 | `@ext`   | File extension of the input media. |
+| `@dbid`  | When using a database, the ID of the match, e.g. `imdbid-tt12345678`. |
 | `@name`  | Localized name of the media. |
 | `@oname` | Original name of the media (needs database). |
 | `@tags`  | Tags present in the input media filename enclosed by square brackets, if any. |

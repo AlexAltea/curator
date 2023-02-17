@@ -27,7 +27,8 @@ class RenameTask(Task):
     def apply(self):
         src = self.inputs[0].path
         dst = self.outputs[0].path
-        os.rename(src, dst)
+        if not os.path.exists(dst):
+            os.rename(src, dst)
 
 def normalize(filename):
     replacements = [
@@ -48,11 +49,13 @@ def plan_rename(media, format, db=None):
         name = detect_name(m.name)
         year = detect_year(m.name)
         tags = detect_tags(m.name)
+        dbid = None
         oname = None
         source = "analysis"
         if db and (entry := db.query(name, year)):
             name = entry.get('name')
             year = entry.get('year')
+            dbid = entry.get('dbid')
             oname = entry.get('oname')
             source = db.name
         if '@name' in format and not name:
@@ -60,6 +63,9 @@ def plan_rename(media, format, db=None):
             continue
         if '@year' in format and not year:
             logging.warning(f"Could not rename: {m.name} (year not detected)")
+            continue
+        if '@dbid' in format and not dbid:
+            logging.warning(f"Could not rename: {m.name} (database id not detected)")
             continue
         if '@oname' in format and not oname:
             logging.warning(f"Could not rename: {m.name} (original name not found)")
@@ -70,6 +76,7 @@ def plan_rename(media, format, db=None):
         filename = filename.replace('@name', str(name))
         filename = filename.replace('@oname', str(oname))
         filename = normalize(filename)
+        filename = filename.replace('@dbid', str(dbid))
         filename = filename.replace('@year', str(year))
         filename = filename.replace('@ext', m.ext.lower())
         filename = filename.replace('@tags',
