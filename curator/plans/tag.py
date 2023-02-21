@@ -9,7 +9,7 @@ class TagPlan(Plan):
         return [
             { 'name': 'Name', 'width': '50%' },
             { 'name': 'Stream', 'width': '6' },
-            { 'name': "New", 'width': '25%' },
+            { 'name': "Old", 'width': '25%' },
             { 'name': '→', 'width': '1' },
             { 'name': "New", 'width': '25%' },
         ]
@@ -23,7 +23,7 @@ class TagTask(Task):
 
     def view(self):
         s = self.inputs[0]
-        return [(s.media.name, s.index, self.old_value, "→", self.new_value)]
+        return [(s.media.name, str(s.index), str(self.old_value), "→", self.new_value)]
 
     def apply(self):
         s = self.inputs[0]
