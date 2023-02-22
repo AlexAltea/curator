@@ -112,7 +112,7 @@ def curator_rename(argv):
 
 def curator_tag(argv):
     parser = curator_argparser()
-    parser.add_argument('-s', '--streams', required=True, choices=["audio", "subtitle"])
+    parser.add_argument('-s', '--streams', default="all", choices=["all", "audio", "subtitle"])
     parser.add_argument('-t', '--tag', required=True, choices=["language"])
     parser.add_argument('-v', '--value', required=False)
     parser.add_argument('--skip-tagged', action='store_true',

@@ -89,7 +89,7 @@ def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
         for stream in m.get_streams():
             # Filter streams and get old tag value
             stream_info = stream.get_info()
-            if stream_info['codec_type'] != stype:
+            if stype != 'all' and stream_info['codec_type'] != stype:
                 continue
             stream_value = stream_info['tags'].get(tag)
             if skip_tagged and stream_value is not None:
