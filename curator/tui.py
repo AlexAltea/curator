@@ -63,6 +63,8 @@ class EditorApp(App):
     TITLE = "Curator"
     BINDINGS = [
         ("q", "quit", "Quit"),
+        ("f", "view_flow", "View flow"),
+        ("c", "view_commands", "View commands"),
     ]
 
     def __init__(self, plan):
@@ -82,10 +84,11 @@ class EditorApp(App):
         for column in self.get_columns():
             table.add_column(column['name'])
         for task in self.plan:
-            for row in task.view():
-                row = [Text(str(task.id), justify="right", overflow='ellipsis')] + \
-                    list(map(lambda text: Text(text, overflow='ellipsis'), row))
-                table.add_row(*row)
+            view = task.view()
+            row = map(lambda c: '\n'.join(c), zip(*view))
+            row = [Text(str(task.id), justify="right", overflow='ellipsis')] + \
+                list(map(lambda text: Text(text, overflow='ellipsis'), row))
+            table.add_row(*row, height=len(view))
 
     def on_key(self, event):
         table = self.query_one(TaskFlow)
@@ -99,6 +102,12 @@ class EditorApp(App):
             table.action_page_up()
         if event.key == Keys.PageDown:
             table.action_page_down()
+
+    def action_view_flow(self):
+        return
+
+    def action_view_commands(self):
+        return
 
     def toggle_selected_task(self):
         table = self.query_one(TaskFlow)

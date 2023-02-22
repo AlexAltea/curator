@@ -43,6 +43,7 @@ def curator_handle_plan(plan, args):
         return
     # Blind run
     if args.y:
+        plan.optimize()
         plan.apply()
         return
     # Interactive mode (default)
@@ -50,7 +51,9 @@ def curator_handle_plan(plan, args):
     tasks_enabled = len([t for t in plan if t.enabled])
     print(f"After changes, the current plan has {tasks_enabled} tasks enabled out of {len(plan)}.")
     if confirm("Apply plan?", default="no"):
-        return plan.apply()
+        plan.optimize()
+        plan.apply()
+        return
 
 # Usage
 CURATOR_USAGE = '''
