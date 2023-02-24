@@ -1,3 +1,5 @@
+import logging
+
 from .tui import *
 
 # Configuration
@@ -25,6 +27,9 @@ class Plan:
         self.last_id += 1
         self.tasks.append(task)
         task.id = self.last_id
+
+    def optimize(self):
+        logging.debug('This plan does not support optimizations')
 
     def apply(self):
         for task in self.tasks:

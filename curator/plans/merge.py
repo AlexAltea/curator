@@ -30,7 +30,8 @@ class MergeTask(Task):
             cmd += ['-i', minput.path]
         for i in range(len(self.inputs)):
             cmd += ['-map', str(i)]
-        cmd += ['-c', 'copy']
+        cmd += ['-c:v', 'copy']
+        cmd += ['-c:a', 'copy']
 
         # Reencode MP4/TX3G to MKV/SRT
         if self.inputs[0].ext == 'mp4' and self.format == 'mkv':
@@ -46,23 +47,24 @@ class MergeTask(Task):
             for media in self.inputs:
                 os.remove(media.path)
 
+def find_related(target, media):
+    basename, _ = os.path.splitext(target.name)
+    matches = []
+    for m in media:
+        if basename in m.name and m is not target:
+            matches.append(m)
+    return matches
+
 def plan_merge(media, format, delete=False):
     plan = MergePlan()
-    cur_video = None
-    cur_task = None
     for m in media:
-        if m.has_video_ext():
-            basename, _ = os.path.splitext(m.name)
-            basepath, _ = os.path.splitext(m.path)
-            cur_output = Media(f'{basepath}.{format}', Media.TYPE_FILE)
-            cur_video = basename
-            if cur_task and len(cur_task.inputs) >= 2:
-                plan.add_task(cur_task)
-            cur_task = MergeTask([m], cur_output, format, delete)
-        elif cur_task and cur_video in m.name:
-            cur_task.inputs.append(m)
-        else:
-            cur_task = None
-    if cur_task and len(cur_task.inputs) >= 2:
-        plan.add_task(cur_task)
+        if not m.has_video_ext():
+            continue
+        basepath, _ = os.path.splitext(m.path)
+        output = Media(f'{basepath}.{format}', Media.TYPE_FILE)
+        related = find_related(m, media)
+        if len(related) >= 1:
+            task = MergeTask([m] + related, output, format, delete)
+            plan.add_task(task)
+            print(m.name)
     return plan
