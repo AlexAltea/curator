@@ -227,6 +227,10 @@ class Stream:
         """
         assert(self.is_subtitle())
 
+        # Cannot detect language in bitmap subtitles
+        if self.get_info()['codec_name'] == 'hdmv_pgs_subtitle':
+            return None
+
         # Detect subtitle language
         def srt_language(path):
             with open(path, 'rb') as f:
@@ -249,7 +253,7 @@ class Stream:
             if self.get_info()['codec_name'] == 'srt':
                 cmd += ['-c:s', 'copy']
             cmd += [output]
-            result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            result = subprocess.run(cmd, capture_output=True)
             if result.returncode != 0:
                 errors = result.stderr.decode('utf-8')
                 raise Exception(f"Failed to extract subtitles from {path} with ffmpeg:\n{errors}")
