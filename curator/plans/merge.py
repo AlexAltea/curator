@@ -56,14 +56,13 @@ def plan_merge(media, format, delete=False):
             basepath, _ = os.path.splitext(m.path)
             cur_output = Media(f'{basepath}.{format}', Media.TYPE_FILE)
             cur_video = basename
+            if cur_task and len(cur_task.inputs) >= 2:
+                plan.add_task(cur_task)
             cur_task = MergeTask([m], cur_output, format, delete)
-            continue
         elif cur_task and cur_video in m.name:
             cur_task.inputs.append(m)
-            continue
-        elif cur_task and len(cur_task.inputs) >= 2:
-            plan.add_task(cur_task)
-        cur_task = None
+        else:
+            cur_task = None
     if cur_task and len(cur_task.inputs) >= 2:
         plan.add_task(cur_task)
     return plan
