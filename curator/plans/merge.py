@@ -1,5 +1,6 @@
 import os
 import subprocess
+import tempfile
 
 from curator import Plan, Task, Media
 
@@ -34,18 +35,27 @@ class MergeTask(Task):
         cmd += ['-c:a', 'copy']
 
         # Reencode MP4/TX3G to MKV/SRT
-        if self.inputs[0].ext == 'mp4' and self.format == 'mkv':
+        if self.inputs[0].ext == 'mp4' and \
+           self.inputs[0].has_subtitle() and self.format == 'mkv':
             cmd += ['-c:s', 'srt']
+        else:
+            cmd += ['-c:s', 'copy']
 
         # Create output file
-        cmd += [self.outputs[0].path]
-        result = subprocess.run(cmd, capture_output=True)
-        if result.returncode != 0:
-            errors = result.stderr.decode('utf-8')
-            raise Exception(f"Failed to merge into {self.outputs[0].name} with ffmpeg:\n{errors}")
-        if self.delete:
-            for media in self.inputs:
-                os.remove(media.path)
+        output = self.outputs[0]
+        with tempfile.TemporaryDirectory(dir=output.dir, prefix='.temp-curator-') as tmp:
+            output_tmp = os.path.join(tmp, f'output.{output.ext}')
+            cmd += [output_tmp]
+            result = subprocess.run(cmd, capture_output=True)
+            if result.returncode != 0:
+                errors = result.stderr.decode('utf-8')
+                raise Exception(f"Failed to merge into {output.name} with ffmpeg:\n{errors}")
+            os.replace(output_tmp, output.path)
+            if self.delete:
+                for media in self.inputs:
+                    if media.path == output.path:
+                        continue # Do not accidentally remove output after in-place merges
+                    os.remove(media.path)
 
 def find_related(target, media):
     basename, _ = os.path.splitext(target.name)
@@ -66,5 +76,4 @@ def plan_merge(media, format, delete=False):
         if len(related) >= 1:
             task = MergeTask([m] + related, output, format, delete)
             plan.add_task(task)
-            print(m.name)
     return plan
