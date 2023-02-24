@@ -102,7 +102,7 @@ def plan_convert(media, format, delete=False):
         task = ConvertTask(m, output_media, format, delete)
 
         # Tweaks for mismatching formats
-        if m.get_info()['format_name'] == 'avi' and m.has_video():
+        if m.get_info()['format_name'] in ('avi', 'ogg') and m.has_video():
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
         if m.get_info()['format_name'] == 'avi' and m.has_video_codec('h264'):
