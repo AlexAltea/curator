@@ -30,6 +30,7 @@ class ConvertTask(Task):
         return [(self.inputs[0].name, "→", self.outputs[0].name)]
 
     def apply(self):
+        temp = None
         # Solve conflict when -fflags +genpts and -bsf:v mpeg4_unpack_bframes are both enabled
         input_media = self.inputs[0].path
         if self.unpack_bframes and '+genpts' in self.fflags:
@@ -41,13 +42,15 @@ class ConvertTask(Task):
             cmd += ['-c:a', 'copy']
             cmd += ['-bsf:v', 'mpeg4_unpack_bframes']
             cmd += ['-map', '0']
+            if self.skip_subtitles:
+                cmd += ['-map', '-0:s']
             cmd += ['-map_metadata', '0']
             cmd += ['-movflags', 'use_metadata_tags']
             cmd += [fixed_media]
             result = subprocess.run(cmd, capture_output=True)
             if result.returncode != 0:
                 errors = result.stderr.decode('utf-8')
-                raise Exception(f"Failed to generate PTS in {output} with ffmpeg:\n{errors}")
+                raise Exception(f"Failed to generate PTS for {self.inputs[0].name} with ffmpeg:\n{errors}")
             input_media = fixed_media
 
         # Build ffmpeg command
@@ -76,6 +79,8 @@ class ConvertTask(Task):
         output = self.outputs[0].path
         cmd += [output]
         result = subprocess.run(cmd, capture_output=True)
+        if temp:
+            temp.cleanup()
         if result.returncode != 0:
             if os.path.exists(output):
                 os.remove(output)
@@ -109,10 +114,10 @@ def plan_convert(media, format, delete=False):
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
         if m.get_info()['format_name'] == 'avi' and m.has_video_codec('h264'):
-            task.add_error('Media contains H264-in-AVI. Unpacking is required, but not supported.')
-        if m.get_info()['format_name'] == 'avi' and m.has_subtitle_codec('xsub'):
+            task.add_error('AVI contains H264 strean. Unpacking is required, but not supported.')
+        if m.get_info()['format_name'] == 'avi' and m.has_subtitle():
             task.skip_subtitles = True
-            task.add_warning('Media contains XSUB-in-AVI. Conversion is not supported.')
+            task.add_warning('AVI contains subtitles. Conversion is not supported.')
         if m.has_packed_bframes():
             task.unpack_bframes = True
             task.add_warning(f'Media contains packed B-frames. Unpacking is required.')
