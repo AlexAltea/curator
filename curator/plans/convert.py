@@ -24,6 +24,7 @@ class ConvertTask(Task):
         self.cflags = set()
         self.mflags = set()
         self.unpack_bframes = False
+        self.skip_subtitles = False
 
     def view(self):
         return [(self.inputs[0].name, "→", self.outputs[0].name)]
@@ -64,6 +65,8 @@ class ConvertTask(Task):
         if self.unpack_bframes and '+genpts' not in self.fflags:
             cmd += ['-bsf:v', 'mpeg4_unpack_bframes']
         cmd += ['-map', '0']
+        if self.skip_subtitles:
+            cmd += ['-map', '-0:s']
         if self.mflags:
             cmd += flatten(self.mflags)
         cmd += ['-map_metadata', '0']
@@ -106,7 +109,10 @@ def plan_convert(media, format, delete=False):
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
         if m.get_info()['format_name'] == 'avi' and m.has_video_codec('h264'):
-            task.add_error(f'Media contains H264-in-AVI. Unpacking is required, but not supported.')
+            task.add_error('Media contains H264-in-AVI. Unpacking is required, but not supported.')
+        if m.get_info()['format_name'] == 'avi' and m.has_subtitle_codec('xsub'):
+            task.skip_subtitles = True
+            task.add_warning('Media contains XSUB-in-AVI. Conversion is not supported.')
         if m.has_packed_bframes():
             task.unpack_bframes = True
             task.add_warning(f'Media contains packed B-frames. Unpacking is required.')
