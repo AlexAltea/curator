@@ -74,6 +74,9 @@ class Media:
                 return True
         return False
 
+    def is_format(self, name):
+        return name in self.get_info()['format_name'].split(',')
+
     def get_info(self):
         if self.info:
             return self.info

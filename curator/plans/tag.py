@@ -2,8 +2,10 @@ import collections
 import os
 import subprocess
 import tempfile
+import shutil
 
 from curator import Plan, Task, Media
+from curator.util import *
 
 class TagPlan(Plan):
     def columns(self):
@@ -35,6 +37,8 @@ class TagTask(Task):
     def __init__(self, input):
         super().__init__([input], [])
         self.updates = []
+        self.use_mkvpropedit = False
+        self.path_mkvpropedit = None
 
     def combine(self, other):
         super().combine(other)
@@ -50,6 +54,10 @@ class TagTask(Task):
         self.updates.append(self.TagUpdate(index, tag, old, new))
 
     def apply(self):
+        if self.use_mkvpropedit and self.path_mkvpropedit:
+            self.apply_with_mkvpropedit()
+            return
+
         m = self.inputs[0]
         cmd = ['ffmpeg']
         cmd += ['-i', m.path]
@@ -64,7 +72,7 @@ class TagTask(Task):
 
             # Tweaks
             s = m.get_streams()[update.index]
-            if m.get_info()['format_name'] == 'avi' and update.tag == 'language':
+            if m.is_format('avi') and update.tag == 'language':
                 if (audio_index := s.audio_index()) not in range(9):
                     raise Exception("RIFF IASx tags should only support up to 9 audio tracks")
                 cmd += ['-metadata', f'IAS{audio_index + 1}={update.new}']
@@ -78,6 +86,17 @@ class TagTask(Task):
                 raise Exception(f"Failed to update tags in {m.name} with ffmpeg:\n{errors}")
             os.replace(output, m.path)
 
+    def apply_with_mkvpropedit(self):
+        m = self.inputs[0]
+        cmd = [self.path_mkvpropedit, m.path]
+        for update in self.updates:
+            cmd += ['--edit', f'track:{update.index+1}']
+            cmd += ['--set', f'{update.tag}={update.new}']
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            errors = result.stderr.decode('utf-8')
+            raise Exception(f"Failed to update tags in {m.name} with mkvpropedit:\n{errors}")
+
 def tag_value(stream, tag, opts=None):
     try:
         if tag == 'language':
@@ -87,10 +106,14 @@ def tag_value(stream, tag, opts=None):
     return None
 
 def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
+    path_mkvpropedit = find_executable('mkvpropedit', [
+        'C:/Program Files/MKVToolNix/mkvpropedit.exe',
+        'C:/Program Files (x86)/MKVToolNix/mkvpropedit.exe',
+    ])
     plan = TagPlan()
     for m in media:
         # Skip files with formats that do not support tagging
-        if m.get_info().get('format_name') == 'subviewer':
+        if m.is_format('subviewer'):
             continue
 
         for stream in m.get_streams():
@@ -104,10 +127,13 @@ def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
 
             # Create tag update task
             task = TagTask(m)
-            if m.get_info()['format_name'] == 'avi':
+            if m.is_format('avi'):
                 task.add_warning("Modifying AVI metadata might affect stream synchronization.")
                 if tag == 'languge' and stream.get_info()['codec_type'] == 'audio' and stream.audio_index() > 8:
                     task.add_error("Cannot change AVI audio stream using IASx tags. Index out of range.")
+            if m.is_format('matroska'):
+                task.use_mkvpropedit = True
+                task.path_mkvpropedit = path_mkvpropedit
             old_value = stream_value
             new_value = value if value is not None else tag_value(stream, tag, opts)
             if old_value != new_value and new_value is not None:

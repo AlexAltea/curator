@@ -57,12 +57,12 @@ def curator_apply_plan(plan):
     plan.optimize()
     plan.apply()
     tasks_failed = len([t for t in plan if t.failed])
-    if tasks_failed:
+    if not tasks_failed:
         print('All tasks completed successfully')
-        return
-    print('Some tasks failed:')
-    for task in plan:
-        if task.failed:
+    else:
+        print('Some tasks failed:')
+        for task in plan:
+            if not task.failed: continue
             print(f'- Task #{task.id} with input {task.inputs[0]} failed')
 
 # Usage

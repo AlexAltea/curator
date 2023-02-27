@@ -1,13 +1,8 @@
+import os
+import shutil
 import sys
 
 from collections.abc import Iterable
-
-def flatten(xs):
-    for x in xs:
-        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)):
-            yield from flatten(x)
-        else:
-            yield x
 
 def confirm(question, default="yes"):
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
@@ -29,3 +24,19 @@ def confirm(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond 'yes' or 'no' ('y' or 'n').\n")
+
+def flatten(xs):
+    for x in xs:
+        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)):
+            yield from flatten(x)
+        else:
+            yield x
+
+def find_executable(name, hints=[]):
+    path = shutil.which(name)
+    if path:
+        return path
+    for hint in hints:
+        if os.path.exists(hint):
+            return hint
+    return None
