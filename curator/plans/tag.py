@@ -89,6 +89,7 @@ class TagTask(Task):
     def apply_with_mkvpropedit(self):
         m = self.inputs[0]
         cmd = [self.path_mkvpropedit, m.path]
+        cmd += ['--disable-language-ietf'] # Fix error 0xc00d3e8c in Windows Movies & TV app
         for update in self.updates:
             cmd += ['--edit', f'track:{update.index+1}']
             cmd += ['--set', f'{update.tag}={update.new}']
