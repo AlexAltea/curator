@@ -89,6 +89,10 @@ def tag_value(stream, tag, opts=None):
 def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
     plan = TagPlan()
     for m in media:
+        # Skip files with formats that do not support tagging
+        if m.get_info().get('format_name') == 'subviewer':
+            continue
+
         for stream in m.get_streams():
             # Filter streams and get old tag value
             stream_info = stream.get_info()
