@@ -114,7 +114,7 @@ def plan_convert(media, format, delete=False):
             task.add_warning(f'Media contains packets without PTS data.')
             task.add_fflag('+genpts')
         if m.get_info()['format_name'] == 'avi' and m.has_video_codec('h264'):
-            task.add_error('AVI contains H264 strean. Unpacking is required, but not supported.')
+            task.add_error('AVI contains H264 stream. Unpacking is required, but not supported.')
         if m.get_info()['format_name'] == 'avi' and m.has_subtitle():
             task.skip_subtitles = True
             task.add_warning('AVI contains subtitles. Conversion is not supported.')
@@ -125,7 +125,7 @@ def plan_convert(media, format, delete=False):
             for stream in m.get_streams():
                 if stream.get_info()['codec_name'] == "mov_text":
                     task.add_warning(f'Conversion requires reencoding {stream}. Styles will be removed.')
-                    task.add_cflag(('-c:s', 'text'))            
+                    task.add_cflag(('-c:s', 'text'))
         if format == 'mkv':
             for stream in m.get_streams():
                 if stream.get_info()['codec_type'] == "data" and \

@@ -33,6 +33,7 @@ def curator_input(args):
     return media
 
 def curator_handle_plan(plan, args):
+    plan.validate()
     if plan.is_empty():
         print('Current plan requires no tasks. There is nothing to be done.')
         return
@@ -43,17 +44,26 @@ def curator_handle_plan(plan, args):
         return
     # Blind run
     if args.y:
-        plan.optimize()
-        plan.apply()
+        curator_apply_plan(plan)
         return
     # Interactive mode (default)
     plan.edit()
     tasks_enabled = len([t for t in plan if t.enabled])
     print(f"After changes, the current plan has {tasks_enabled} tasks enabled out of {len(plan)}.")
     if confirm("Apply plan?", default="no"):
-        plan.optimize()
-        plan.apply()
+        curator_apply_plan(plan)
+
+def curator_apply_plan(plan):
+    plan.optimize()
+    plan.apply()
+    tasks_failed = len([t for t in plan if t.failed])
+    if tasks_failed:
+        print('All tasks completed successfully')
         return
+    print('Some tasks failed:')
+    for task in plan:
+        if task.failed:
+            print(f'- Task #{task.id} with input {task.inputs[0]} failed')
 
 # Usage
 CURATOR_USAGE = '''

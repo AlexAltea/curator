@@ -1,4 +1,5 @@
 import logging
+import os
 
 from .tui import *
 
@@ -31,10 +32,25 @@ class Plan:
     def optimize(self):
         logging.debug('This plan does not support optimizations')
 
+    def validate(self):
+        outputs = set()
+        for task in self.tasks:
+            for output in task.outputs:
+                path = output.path
+                if path in outputs:
+                    task.add_error(f'Output {path} already exists in the plan')
+                if os.path.exists(path):
+                    task.add_error(f'Output {path} already exists in the filesystem')
+                outputs.add(path)
+
     def apply(self):
         for task in self.tasks:
             if task.enabled:
-                task.apply()
+                try:
+                    task.apply()
+                except Exception as e:
+                    task.failed = True
+                    print(f'Task #{task.id} with input {task.inputs[0]} failed')
 
     def show(self):
         thead, tbody = self.show_tasks()

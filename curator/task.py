@@ -6,6 +6,7 @@ class Task:
         self.warnings = set()
         self.errors = set()
         self.id = None
+        self.failed = False
 
     def add_warning(self, warning):
         self.warnings.add(warning)
