@@ -119,9 +119,13 @@ def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
         for stream in m.get_streams():
             # Filter streams and get old tag value
             stream_info = stream.get_info()
+            if stream_info['codec_type'] not in ('audio', 'subtitle'):
+                continue
             if stype != 'all' and stream_info['codec_type'] != stype:
                 continue
-            stream_value = stream_info['tags'].get(tag)
+            stream_value = stream_info['tags'].get(tag) or \
+                           stream_info['tags'].get(tag.lower()) or \
+                           stream_info['tags'].get(tag.upper())
             if skip_tagged and stream_value is not None:
                 continue
 
