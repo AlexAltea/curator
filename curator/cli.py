@@ -112,10 +112,12 @@ def curator_rename(argv):
     parser = curator_argparser()
     parser.add_argument('-f', '--format', default="@name (@year).@ext")
     parser.add_argument('-d', '--db', required=False)
+    parser.add_argument('--db-cache-days', required=False, type=int, default=30,
+        help='Update database if older than N days. Set to 0 to force refresh (default: 30 days)')
     args = curator_args(parser, argv)
 
     from curator.plans import plan_rename
-    db = get_database(args.db) if args.db else None
+    db = get_database(args.db, args.db_cache_days) if args.db else None
     media = curator_input(args)
     plan = plan_rename(media, args.format, db)
     curator_handle_plan(plan, args)

@@ -27,7 +27,7 @@ IMDB_ACKNOWLEDGEMENT = """Information courtesy of IMDb (https://www.imdb.com).
 Used with permission."""
 
 class ImdbDatabase(Database):
-    def __init__(self):
+    def __init__(self, cache_days):
         super().__init__("imdb")
 
         # Common suffix
@@ -47,11 +47,14 @@ class ImdbDatabase(Database):
         print(IMDB_ACKNOWLEDGEMENT)
 
         # Check if cached index exists
-        cache_name = f'index_milli_{today}'
-        cache_path = os.path.join(self.cache, cache_name)
-        if os.path.exists(cache_path):
-            self.ix = milli.Index(cache_path, 4*1024*1024*1024) # 4 GiB
-            return
+        for day in range(cache_days):
+            day = arrow.utcnow().shift(days=-day).format('YYYY-MM-DD')
+            cache_name = f'index_milli_{day}'
+            cache_path = os.path.join(self.cache, cache_name)
+            if os.path.exists(cache_path):
+                logging.info(f"Using cached movie index from {day}")
+                self.ix = milli.Index(cache_path, 4*1024*1024*1024) # 4 GiB
+                return
 
         # Otherwise create one
         logging.info("Creating movie index...")
