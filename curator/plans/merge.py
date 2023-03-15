@@ -12,6 +12,17 @@ class MergePlan(Plan):
             { 'name': "Output", 'width': '50%' },
         ]
 
+    def validate(self):
+        # Overriding Plan.validate since MergePlans allow for inplace merges
+        # where the output already exists in the filesystem.
+        outputs = set()
+        for task in self.tasks:
+            for output in task.outputs:
+                path = output.path
+                if path in outputs:
+                    task.add_error(f'Output {path} already exists in the plan')
+                outputs.add(path)
+
 class MergeTask(Task):
     def __init__(self, inputs, output, format, delete):
         super().__init__(inputs, [output])
