@@ -37,7 +37,7 @@ def normalize(filename):
         (r' vs\. ',  r' vs '),   # Remove versus period
         (r' 1/3 ',   r' ⅓ '),    # Convert to vulgar fractions
         (r'/',       r'-'),      # Remove slashes
-        (r'?',       r''),       # Remove question marks
+        (r'\?',       r''),       # Remove question marks
     ]
     for pattern, replacement in replacements:
         filename = re.sub(pattern, replacement, filename)
