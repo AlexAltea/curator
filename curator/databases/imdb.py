@@ -110,7 +110,13 @@ class ImdbDatabase(Database):
             return None
         movies = self.ix.get_documents(results)
         if year is not None:
-            movies = list(filter(lambda m: m['year'] == str(year), movies))
+            movies_year_exact = list(filter(lambda m: int(m['year']) == year, movies))
+            if len(movies_year_exact) > 0:
+                movies = movies_year_exact
+            else:
+                movies_year_above = list(filter(lambda m: int(m['year']) == year + 1, movies))
+                movies_year_below = list(filter(lambda m: int(m['year']) == year - 1, movies))
+                movies = movies_year_above + movies_year_below
         if not movies:
             return None
         for movie in movies:
