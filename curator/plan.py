@@ -50,7 +50,7 @@ class Plan:
                     task.apply()
                 except Exception as e:
                     task.failed = True
-                    print(f'Task #{task.id} with input {task.inputs[0]} failed')
+                    print(f'Task #{task.id} with input {task.inputs[0]} failed:\n{e}')
 
     def show(self):
         thead, tbody = self.show_tasks()

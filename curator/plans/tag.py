@@ -103,7 +103,7 @@ def tag_value(stream, tag, opts=None):
         if tag == 'language':
             return stream.detect_language(opts)
     except Exception as e:
-        print(f'Could not process {stream.media.path}')
+        print(f'Could not process {stream.media.path}:\n{e}')
     return None
 
 def plan_tag(media, stype, tag, value=None, skip_tagged=False, opts=None):
