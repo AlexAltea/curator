@@ -1,10 +1,11 @@
-import fractions
+import glob
 import logging
 import os
 import subprocess
 import tempfile
 
 from curator import Plan, Task, Media
+from curator import VIDEO_EXTENSIONS
 
 # Default options
 DEF_OPTS_MERGE = {
@@ -55,12 +56,18 @@ class MergeTask(Task):
     def view(self):
         rows = []
         for m in self.inputs:
+            #  Check if input used
+            m_selected_streams = list(filter(lambda s: s.media == m, self.selected_streams))
+            if len(m_selected_streams) == 0:
+                continue
+            # Show selected media
             rows.append((m.name,
                 '↗' if rows else '→',
                 ' ' if rows else self.outputs[0].name,
             ))
-            for stream in self.selected_streams:
-                if stream.media == m:
+            # Show selected streams if strict subset of available
+            if len(m_selected_streams) < len(m.get_streams()):
+                for stream in m_selected_streams:
                     rows.append((f' - {stream}', '↗', ''))
         return rows
 
@@ -135,11 +142,9 @@ def select_video_stream(s1, s2, opts=DEF_OPTS_MERGE):
                 return stream
         # Frames
         elif criterion == 'fps':
-            if fractions.Fraction(s1.get_info()['avg_frame_rate']) < \
-               fractions.Fraction(s2.get_info()['avg_frame_rate']):
+            if s1.get_frame_rate() > s2.get_frame_rate():
                 return s1
-            if fractions.Fraction(s2.get_info()['avg_frame_rate']) < \
-               fractions.Fraction(s1.get_info()['avg_frame_rate']):
+            if s2.get_frame_rate() > s1.get_frame_rate():
                 return s2
         else:
             raise Exception(f"Unknown video selection criterion: {criterion}")
@@ -182,6 +187,14 @@ def find_related(target, media):
     for m in media:
         if basename in m.name and m is not target:
             matches.append(m)
+    # Try to find dedicated subtitle folders in lone video files
+    dirname = os.path.dirname(target.path)
+    dirents = glob.glob(os.path.join(dirname, '*'))
+    if len([f for f in dirents if os.path.isfile(f) and os.path.splitext(f)[1][1:] in VIDEO_EXTENSIONS]) == 1:
+        for entry in dirents:
+            if os.path.isdir(entry) and os.path.basename(entry).lower() in ('subs', 'subtitles'):
+                subs = map(lambda path: Media(path), glob.glob(os.path.join(entry, '*.srt')))
+                matches += list(subs)
     return matches
 
 def plan_merge(media, format, delete=False, opts=DEF_OPTS_MERGE):
@@ -216,7 +229,7 @@ def plan_merge(media, format, delete=False, opts=DEF_OPTS_MERGE):
                 audio_streams.append(curr)
         # Then subtitles
         subtitle_streams = []
-        for s in task.input_subtitle_streams():
+        for curr in task.input_subtitle_streams():
             inserted = False
             for index, prev in enumerate(subtitle_streams):
                 curr_lang = curr.get_info()['tags'].get('language')

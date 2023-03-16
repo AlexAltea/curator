@@ -1,4 +1,5 @@
 import collections
+import fractions
 import json
 import logging
 import os
@@ -91,6 +92,10 @@ class Stream:
         if 'duration' in info:
             return float(info['duration'])
         raise Exception("Could not determine stream duration.")
+
+    def get_frame_rate(self):
+        assert(self.is_video())
+        return fractions.Fraction(self.get_info()['avg_frame_rate'])
 
     def get_frames(self):
         if self.frames:
