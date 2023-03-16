@@ -266,7 +266,7 @@ class Stream:
         with tempfile.TemporaryDirectory() as tmp:
             output = os.path.join(tmp, 'output.srt')
             cmd = ['ffmpeg', '-i', path, '-map', f'0:{self.index}']
-            if self.get_info()['codec_name'] == 'srt':
+            if self.get_info()['codec_name'] in ('srt', 'subrip'):
                 cmd += ['-c:s', 'copy']
             cmd += [output]
             result = subprocess.run(cmd, capture_output=True)
