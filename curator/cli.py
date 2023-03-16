@@ -101,11 +101,39 @@ def curator_merge(argv):
     parser = curator_argparser()
     parser.add_argument('-d', '--delete', action='store_true', help='delete inputs after merging')
     parser.add_argument('-f', '--format', choices=['mkv'], default='mkv')
+
+    # Video stream selection
+    parser.add_argument('--try-video-criteria', required=False, default='resolution,codec,fps',
+        help='Comma-separated list of video criteria in decreasing order of importance')
+    parser.add_argument('--try-video-codecs', required=False, default='hevc,h264,mpeg4',
+        help='Comma-separated list of video codec in decreasing order of preference')
+    parser.add_argument('--min-video-resolution', required=False, default=None,
+        help='Try to discard video streams below this resolution')
+    parser.add_argument('--max-video-resolution', required=False, default=None,
+        help='Try to discard video streams above this resolution')
+    parser.add_argument('--min-video-bitrate', required=False, default=None,
+        help='Try to discard video streams below this bitrate')
+    parser.add_argument('--max-video-bitrate', required=False, default=None,
+        help='Try to discard video streams above this bitrate')
+
     args = curator_args(parser, argv)
+    if args.min_video_resolution or args.min_video_bitrate or \
+       args.max_video_resolution or args.max_video_bitrate:
+        raise Exception("Unsupported argument")
+    select = lambda *keys: { k: vars(args)[k] for k in keys }
+    opts = select(
+        'try_video_criteria',
+        'try_video_codecs',
+        'min_video_resolution',
+        'max_video_resolution',
+        'min_video_bitrate',
+        'max_video_bitrate')
+    for k in ('try_video_criteria', 'try_video_codecs'):
+        opts[k] = opts[k].split(',')
 
     from curator.plans import plan_merge
     media = curator_input(args)
-    plan = plan_merge(media, args.format, args.delete)
+    plan = plan_merge(media, args.format, args.delete, opts)
     curator_handle_plan(plan, args)
 
 def curator_rename(argv):

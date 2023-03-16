@@ -25,3 +25,24 @@ class Task:
     def concat(self, other):
         assert(self.outputs == self.inputs)
         raise Exception("Unimplemented")
+
+    # Helpers
+    def input_streams(self):
+        for media in self.inputs:
+            for stream in media.get_streams():
+                yield stream
+
+    def input_video_streams(self):
+        for stream in self.input_streams():
+            if stream.is_video():
+                yield stream
+
+    def input_audio_streams(self):
+        for stream in self.input_streams():
+            if stream.is_audio():
+                yield stream
+
+    def input_subtitle_streams(self):
+        for stream in self.input_streams():
+            if stream.is_subtitle():
+                yield stream

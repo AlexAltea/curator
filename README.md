@@ -37,7 +37,21 @@ Highlighted use cases (current and planned):
 
 Below you can find a description and examples of all tools provided by Curator:
 
+### Auto
+
+```mermaid
+flowchart LR
+    Convert --> Merge --> Sync --> Tag --> Rename
+```
+
 ### Merge
+
+Merges all streams with identical names into a single container, except for:
+
+- Video streams, if one already exists.
+- Audio streams, if one with the same `language` tag already exists.
+
+Requires all video containers to be MKV.
 
 ![example-curator-merge](./docs/images/curator-merge.svg)
 

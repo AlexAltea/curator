@@ -33,7 +33,7 @@ class Stream:
         self.warnings = set()
 
     def __repr__(self):
-        return f'Stream("{self.media.path}", index={self.index})'
+        return f'Stream("{self.media.name}", index={self.index})'
 
     def is_video(self):
         return self.get_info()['codec_type'] == 'video'

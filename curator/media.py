@@ -40,6 +40,9 @@ class Media:
         self.streams = None
         self.packets = None
 
+    def __repr__(self):
+        return f'Media("{self.name}")'
+
     def has_video_ext(self):
         return self.ext in VIDEO_EXTENSIONS
 
@@ -132,8 +135,6 @@ class Media:
     def num_streams():
         return len(get_streams())
 
-    def __repr__(self):
-        return f'Media("{self.path}")'
 
 def parse_query(query):
     lhs, rhs = query.split('=')
