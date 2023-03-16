@@ -123,7 +123,8 @@ def plan_convert(media, format, delete=False):
             task.add_warning(f'Media contains packed B-frames. Unpacking is required.')
         if format == 'mkv':
             for stream in m.get_streams():
-                if stream.get_info()['codec_name'] == "mov_text":
+                if stream.get_info()['codec_type'] == "subtitle" and \
+                   stream.get_info()['codec_name'] == "mov_text":
                     task.add_warning(f'Conversion requires reencoding {stream}. Styles will be removed.')
                     task.add_cflag(('-c:s', 'text'))
         if format == 'mkv':
@@ -132,6 +133,9 @@ def plan_convert(media, format, delete=False):
                    stream.get_info()['tags']['handler_name'] == "SubtitleHandler":
                     task.add_warning('Chapters have been included in {stream}. Stream will be dropped, but chapters might be carried over by ffmpeg.')
                     task.add_mflag(('-map', f'-0:{stream.index}'))
-
+                if stream.get_info()['codec_type'] == "data" and \
+                   stream.get_info()['tags']['handler_name'] == "Time Code Media Handler":
+                    task.add_warning('Chapters have been included in {stream}. Stream will be dropped.')
+                    task.add_mflag(('-map', f'-0:{stream.index}'))
         plan.add_task(task)
     return plan
