@@ -166,6 +166,7 @@ class Stream:
         results = {}
         with tempfile.TemporaryDirectory() as tmp:
             ext = self.media.ext
+            err_samples = 0
             for index in range(num_samples):
                 # Extract sample
                 sample = os.path.join(tmp, f'sample{index:04d}.{ext}')
@@ -180,10 +181,16 @@ class Stream:
                     raise Exception(f"Failed to extract audio sample from {self.media.path} with ffmpeg:\n{errors}")
 
                 # Detect language in sample
-                audio = whisper.load_audio(sample)
-                audio = whisper.pad_or_trim(audio)
-                mel = whisper.log_mel_spectrogram(audio).to(model.device)
-                _, probs = model.detect_language(mel)
+                try:
+                    audio = whisper.load_audio(sample)
+                    audio = whisper.pad_or_trim(audio)
+                    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+                    _, probs = model.detect_language(mel)
+                except Exception as e:
+                    logging.warning(f'Failed to detect language in {sample}:\n{e}')
+                    err_samples += 1
+                    continue
+                # Process language detection results
                 if debug:
                     highest_probs = dict(collections.Counter(probs).most_common(5))
                     highest_probs_rounded = { k: f'{v:.4f}' for k, v in highest_probs.items() }
@@ -193,7 +200,9 @@ class Stream:
                 if opts['min_score'] <= prob:
                     results.setdefault(lang, []).append(prob)
 
-        # Compute final scores as votes+avg(prob)
+        # Compute final scores as votes+avg(prob) if more than half succeeded
+        if err_samples > num_samples / 2:
+            return None
         results = { k: len(v) + sum(v)/len(v) for k, v in results.items() }
         if not results:
             return None
@@ -235,6 +244,8 @@ class Stream:
         def srt_language(path):
             with open(path, 'rb') as f:
                 enc = chardet.detect(f.read())['encoding']
+            if enc == 'Windows-1254':
+                enc = None # Often false positive, let PySRT auto-detect
             subs = pysrt.open(path, encoding=enc)
             text = ' '.join(map(lambda x: x.text, subs))
             lang = langid.classify(text)[0]
