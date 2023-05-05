@@ -3,6 +3,8 @@
 
 import setuptools
 
+from pkg_resources import parse_requirements
+
 CURATOR_VERSION = '0.1.1'
 CURATOR_REPOSITORY_URL = 'https://github.com/AlexAltea/curator'
 CURATOR_DOWNLOAD_URL = 'https://github.com/AlexAltea/curator/tarball/' + CURATOR_VERSION
@@ -19,6 +21,9 @@ Automated normalization and curating of media collections. Written in Python 3.x
 More information at: https://github.com/AlexAltea/curator
 """
 
+with open('requirements.txt', 'r') as f:
+    requirements = [str(req) for req in parse_requirements(f)]
+
 setuptools.setup(
     name='curator',
     version=CURATOR_VERSION,
@@ -33,14 +38,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': ['curator=curator.cli:main'],
     },
-    install_requires=[
-        'chardet==3.0.4',
-        'iso639-lang==2.1.0',
-        'langid==1.1.6',
-        'numpy>=1.21.6',
-        'openai-whisper==20230117',
-        'pysrt==1.1.2',
-    ],
+    install_requires=requirements,
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License v2.0',
