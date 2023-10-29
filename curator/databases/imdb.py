@@ -47,7 +47,7 @@ class ImdbDatabase(Database):
         print(IMDB_ACKNOWLEDGEMENT)
 
         # Check if cached index exists
-        for day in range(cache_days):
+        for day in list(range(cache_days)) + [0]:
             day = arrow.utcnow().shift(days=-day).format('YYYY-MM-DD')
             cache_name = f'index_milli_{day}'
             cache_path = os.path.join(self.cache, cache_name)
