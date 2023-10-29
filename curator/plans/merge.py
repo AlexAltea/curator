@@ -106,7 +106,7 @@ class MergeTask(Task):
                     os.remove(media.path)
 
 def select_codec(s1, s2, codec_list):
-    codec_scores = { codec: len(codec_list) - index for index, codec in codec_list }
+    codec_scores = { codec: len(codec_list) - index for index, codec in enumerate(codec_list) }
     s1_codec = s1.get_info()['codec_name']
     s2_codec = s2.get_info()['codec_name']
     s1_codec_score = codec_scores.get(s1_codec, 0)
@@ -221,7 +221,8 @@ def plan_merge(media, format, delete=False, opts=DEF_OPTS_MERGE):
             for index, prev in enumerate(audio_streams):
                 curr_lang = curr.get_info()['tags'].get('language')
                 prev_lang = prev.get_info()['tags'].get('language')
-                if curr_lang == prev_lang != None:
+                # FIXME: Do not remove anything while merging
+                if False and curr_lang == prev_lang != None:
                     audio_streams[index] = select_audio_stream(prev, curr)
                     inserted = True
                     break
@@ -234,7 +235,8 @@ def plan_merge(media, format, delete=False, opts=DEF_OPTS_MERGE):
             for index, prev in enumerate(subtitle_streams):
                 curr_lang = curr.get_info()['tags'].get('language')
                 prev_lang = prev.get_info()['tags'].get('language')
-                if curr_lang == prev_lang != None:
+                # FIXME: Do not remove anything while merging
+                if False and curr_lang == prev_lang != None:
                     subtitle_streams[index] = select_subtitle_stream(prev, curr)
                     inserted = True
                     break
