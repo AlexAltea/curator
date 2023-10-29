@@ -130,14 +130,19 @@ def plan_convert(media, format, delete=False):
                     task.add_cflag(('-c:s', 'text'))
         if format == 'mkv':
             for stream in m.get_streams():
-                if stream.get_info()['codec_type'] == "data" and \
-                   stream.get_info()['tags']['handler_name'] == "SubtitleHandler":
-                    task.add_warning('Chapters have been included in {stream}. Stream will be dropped, but chapters might be carried over by ffmpeg.')
-                    task.add_mflag(('-map', f'-0:{stream.index}'))
                 # Drop MP4/TMCD
                 if stream.get_info()['codec_type'] == "data" and \
-                   stream.get_info()['tags']['handler_name'] == "Time Code Media Handler":
+                   stream.get_info()['tags'].get('handler_name') == "Time Code Media Handler":
                     task.add_warning('Chapters have been included in {stream}. Stream will be dropped.')
+                    task.add_mflag(('-map', f'-0:{stream.index}'))
+                if stream.get_info()['codec_type'] == "data" and \
+                   stream.get_info()['tags'].get('handler_name') == "SubtitleHandler":
+                    task.add_warning('Chapters have been included in {stream}. Stream will be dropped, but chapters might be carried over by ffmpeg.')
+                    task.add_mflag(('-map', f'-0:{stream.index}'))
+                # Drop binary data
+                if stream.get_info()['codec_type'] == "data" and \
+                   stream.get_info()['codec_name'] == "bin_data":
+                    task.add_warning('Binary data has been included in {stream}. Stream will be dropped.')
                     task.add_mflag(('-map', f'-0:{stream.index}'))
         plan.add_task(task)
     return plan
