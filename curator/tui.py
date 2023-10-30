@@ -91,17 +91,8 @@ class EditorApp(App):
             table.add_row(*row, height=len(view))
 
     def on_key(self, event):
-        table = self.query_one(TaskFlow)
         if event.key == Keys.Space or event.key == Keys.Enter:
             self.toggle_selected_task()
-        if event.key == Keys.Up:
-            table.action_cursor_up()
-        if event.key == Keys.Down:
-            table.action_cursor_down()
-        if event.key == Keys.PageUp:
-            table.action_page_up()
-        if event.key == Keys.PageDown:
-            table.action_page_down()
 
     def action_view_flow(self):
         return
@@ -116,7 +107,7 @@ class EditorApp(App):
 
         # HACK: Without this styles don't refresh
         # TODO: Find a better approach
-        table._require_update_dimensions = True
+        table._line_cache.clear()
 
     def get_columns(self):
         first_width = str(len(str(len(self.plan))))
