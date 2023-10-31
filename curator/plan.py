@@ -1,8 +1,6 @@
 import logging
 import os
 
-from .tui import *
-
 # Configuration
 DEFAULT_UI_BACKEND = 'tui'
 
@@ -53,6 +51,7 @@ class Plan:
                     print(f'Task #{task.id} with input {task.inputs[0]} failed:\n{e}')
 
     def show(self):
+        from .tui import print_plan
         thead, tbody = self.show_tasks()
         tbody = list(map(lambda row: tuple(map(str, row)), tbody))
         print_plan(thead, tbody)
@@ -65,6 +64,7 @@ class Plan:
         return thead, tbody
 
     def edit(self, backend=DEFAULT_UI_BACKEND):
+        from .tui import EditorApp
         if backend == 'tui':
             app = EditorApp(self)
             app.run()

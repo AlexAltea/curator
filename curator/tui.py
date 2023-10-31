@@ -9,13 +9,15 @@ from rich.table import Table
 from rich.text import Text
 from textual.app import App, ComposeResult, RenderResult
 from textual.binding import Binding
-from textual.containers import Grid
+from textual.containers import Horizontal, Vertical
 from textual.geometry import Size
 from textual.keys import Keys
 from textual.screen import Screen
 from textual.widgets.data_table import ColumnKey, RowKey
 from textual.widgets._header import HeaderIcon
 from textual.widgets import Button, Header, Footer, DataTable, Static
+
+from curator.plans import RenameTask
 
 class TaskFlow(DataTable):
     COMPONENT_CLASSES = {
@@ -42,72 +44,34 @@ class TaskFlow(DataTable):
         self.styles.overflow_x = "hidden"
         self.plan = plan
 
-    def add_column(self, name):
-        align = "right" if name == "#" else None
-        label = Text(name, overflow='ellipsis', justify=align)
-        super().add_column(label, key=name)
-
-    # HACK: Overriding private method
-    def _render_line_in_row(self, row_key, line_no, base_style, cursor_location, hover_location):
-        index = self._row_locations.get(row_key)
-        style = "taskflow--task-odd"
-        if index is not None:
-            if index % 2:
-                style = "taskflow--task-even"
-            if not self.plan[index].enabled:
-                style = "taskflow--task-disabled"
-        style = self.get_component_styles(style).rich_style
-        return super()._render_line_in_row(row_key, line_no, style, cursor_location, hover_location)
-
-class EditorApp(App):
-    TITLE = "Curator"
-    BINDINGS = [
-        ("q", "quit", "Quit"),
-        ("f", "view_flow", "View flow"),
-        ("c", "view_commands", "View commands"),
-    ]
-
-    def __init__(self, plan):
-        super().__init__()
-        self.plan = plan
-
-    def compose(self) -> ComposeResult:
-        yield Header()
-        yield TaskFlow(self.plan)
-        yield Footer()
-
     def on_mount(self):
-        # Remove annoying icon
-        self.query_one(HeaderIcon).icon = ' '
-        # Add table contents
-        table = self.query_one(DataTable)
         for column in self.get_columns():
-            table.add_column(column['name'])
+            name = column['name']
+            align = "right" if name == "#" else None
+            label = Text(name, overflow='ellipsis', justify=align)
+            self.add_column(label, key=name)
+        self.update_tasks()
+
+    def update_tasks(self):
+        self.clear()
         for task in self.plan:
             view = task.view()
-            row = map(lambda c: '\n'.join(c), zip(*view))
-            row = [Text(str(task.id), justify="right", overflow='ellipsis')] + \
-                list(map(lambda text: Text(text, overflow='ellipsis'), row))
-            table.add_row(*row, height=len(view))
+            row = self.task_to_row(task)
+            self.add_row(*row, height=len(view))
 
-    def on_key(self, event):
-        if event.key == Keys.Space or event.key == Keys.Enter:
-            self.toggle_selected_task()
+    def update_task(self, index):
+        task = self.plan[index]
+        row = self.task_to_row(task)
+        for cell, value in enumerate(row):
+            self.update_cell_at((index, cell), value)
 
-    def action_view_flow(self):
-        return
-
-    def action_view_commands(self):
-        return
-
-    def toggle_selected_task(self):
-        table = self.query_one(TaskFlow)
-        index = table.cursor_coordinate.row
-        self.plan[index].enabled ^= True
-
-        # HACK: Without this styles don't refresh
-        # TODO: Find a better approach
-        table._line_cache.clear()
+    @staticmethod
+    def task_to_row(task):
+        view = task.view()
+        row = map(lambda c: '\n'.join(c), zip(*view))
+        row = [Text(str(task.id), justify="right", overflow='ellipsis')] + \
+            list(map(lambda text: Text(text, overflow='ellipsis'), row))
+        return row
 
     def get_columns(self):
         first_width = str(len(str(len(self.plan))))
@@ -138,16 +102,146 @@ class EditorApp(App):
         return columns
 
     def on_resize(self, event):
-        table = self.query_one(TaskFlow)
         cols = self.compute_column_widths(event.size.width)
         for c in cols:
             key = ColumnKey(c['name'])
-            col = table.columns.get(key)
+            col = self.columns.get(key)
             if col:
                 col.width = c['width']
                 col.auto_width = False
-        table._require_update_dimensions = True
+        self._require_update_dimensions = True
 
+    # HACK: Overriding private method
+    def _render_line_in_row(self, row_key, line_no, base_style, cursor_location, hover_location):
+        index = self._row_locations.get(row_key)
+        style = "taskflow--task-odd"
+        if index is not None:
+            if index % 2:
+                style = "taskflow--task-even"
+            if not self.plan[index].enabled:
+                style = "taskflow--task-disabled"
+        style = self.get_component_styles(style).rich_style
+        return super()._render_line_in_row(row_key, line_no, style, cursor_location, hover_location)
+
+
+class TaskAlternatives(DataTable):
+    def __init__(self, plan, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cursor_type = 'row'
+        self.zebra_stripes = False
+        self.styles.dock = "right"
+        self.styles.width = "30%"
+        self.styles.margin = (1, 0, 1, 1)
+        self.styles.overflow_x = "hidden"
+        self.visible = False
+        self.display = False
+        self.plan = plan
+
+        self.add_column('#',)
+        self.add_column('Name')
+        self.update(plan[0])
+
+    def update(self, task):
+        self.clear()
+        if isinstance(task, RenameTask):
+            self.add_rows(enumerate(task.alternatives))
+
+
+class EditorApp(App):
+    TITLE = "Curator"
+    BINDINGS = [
+        ("q", "quit", "Quit"),
+        #("f", "view_flow", "View flow"),
+        #("c", "view_commands", "View commands"),
+        ("d", "disable_all", "Disable all"),
+        ("e", "enable_all", "Enable all"),
+        ("a", "toggle_alternatives", "Toggle alternatives"),
+    ]
+
+    def __init__(self, plan):
+        super().__init__()
+        self.plan = plan
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield TaskFlow(self.plan)
+        yield TaskAlternatives(self.plan)
+        yield Footer()
+
+    def on_mount(self):
+        # Remove annoying icon
+        self.query_one(HeaderIcon).icon = ' '
+
+    def clear_line_cache(self, Widget):
+        # HACK: Without this styles don't refresh
+        # TODO: Find a better approach
+        table = self.query_one(Widget)
+        self._require_update_dimensions = True
+        table._line_cache.clear()
+
+    def on_key(self, event):
+        if event.key == Keys.Space or event.key == Keys.Enter:
+            self.toggle_selected_task()
+        if event.key == Keys.Up or event.key == Keys.Down:
+            self.call_after_refresh(self.update_alternatives)
+        if event.key in '0123456789':
+            index = int(event.key)
+            self.select_alternative(index)
+
+    def action_view_flow(self):
+        return
+
+    def action_view_commands(self):
+        return
+
+    def action_disable_all(self):
+        for task in self.plan:
+            task.enabled = False
+
+        # HACK: Without this styles don't refresh
+        # TODO: Find a better approach
+        table = self.query_one(TaskFlow)
+        table._clear_caches()
+        self.refresh()
+
+    def action_enable_all(self):
+        for task in self.plan:
+            task.enabled = True
+
+        # HACK: Without this styles don't refresh
+        # TODO: Find a better approach
+        table = self.query_one(TaskFlow)
+        table._clear_caches()
+        self.refresh()
+
+    def action_toggle_alternatives(self):
+        alts = self.query_one(TaskAlternatives)
+        alts.visible ^= True
+        alts.display ^= True
+
+    def toggle_selected_task(self):
+        table = self.query_one(TaskFlow)
+        index = table.cursor_coordinate.row
+        self.plan[index].enabled ^= True
+        self.clear_line_cache(TaskFlow)
+
+    def update_alternatives(self):
+        task = self.get_current_task()
+        alts = self.query_one(TaskAlternatives)
+        alts.update(task)
+
+    def select_alternative(self, index):
+        if not self.query_one(TaskAlternatives).visible:
+            return
+        task = self.get_current_task()
+        task.update_output(task.alternatives[index])
+        table = self.query_one(TaskFlow)
+        table.update_task(task.id - 1)
+
+    def get_current_task(self):
+        table = self.query_one(TaskFlow)
+        index = table.cursor_coordinate.row
+        return self.plan[index]
 
 ALIGN_LEFT = 1
 ALIGN_RIGHT = 2

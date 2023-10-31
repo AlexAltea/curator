@@ -51,6 +51,25 @@ def normalize(filename):
         filename = re.sub(pattern, replacement, filename)
     return filename
 
+def format_entry(format, entry, tags, ext):
+    name = entry.get('name')
+    year = entry.get('year')
+    dbid = entry.get('dbid')
+    oname = entry.get('oname')
+
+    filename = format
+    filename = filename.replace('@name', str(name))
+    filename = filename.replace('@oname', str(oname))
+    filename = normalize(filename)
+    filename = filename.replace('@dbid', str(dbid))
+    filename = filename.replace('@year', str(year))
+    filename = filename.replace('@ext', ext)
+    filename = filename.replace('@tags',
+        ''.join(map(lambda t: f'[{t}] ', tags)))
+    root, ext = os.path.splitext(filename)
+    filename = root.strip() + ext
+    return filename
+
 def plan_rename(media, format, db=None):
     plan = RenamePlan()
     for m in media:
@@ -93,7 +112,9 @@ def plan_rename(media, format, db=None):
             ''.join(map(lambda t: f'[{t}] ', tags)))
         root, ext = os.path.splitext(filename)
         filename = root.strip() + ext
+
         if filename != m.name:
-            task = RenameTask(m, filename, source)
+            alternatives = list(map(lambda e: format_entry(format, e, tags, m.ext.lower()), entries))
+            task = RenameTask(m, filename, source, alternatives)
             plan.add_task(task)
     return plan
