@@ -124,10 +124,11 @@ class ImdbDatabase(Database):
             distance = min(map(lambda title: textdistance.levenshtein(title, name), titles))
             popularity = math.log10(movie['votes'] + 1)
             movie['score'] = popularity - distance
-        movie = max(movies, key=lambda m: m['score'])
-        return {
+        # Return closest matches
+        movies = [{
             'name': name,
             'oname': movie.get('name'),
             'year': movie.get('year'),
             'dbid': 'imdbid-' + movie.get('id'),
-        }
+        } for movie in sorted(movies, key=lambda m: m['score'], reverse=True)][:10]
+        return movies

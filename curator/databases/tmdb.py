@@ -65,10 +65,10 @@ class TmdbDatabase(Database):
                 return math.inf
             return popularity * 1/distance
         r = max(results, key=score)
-        return {
+        return [{
             'name': r[0],
             'year': self.get_year(r[2]),
-        }
+        }]
 
     def query(self, name, year=None):
         match = self.query_exact(name, year)

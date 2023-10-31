@@ -64,8 +64,8 @@ class OmdbDatabase(Database):
         if not results:
             return None
         movie = self.ix.get_document(results[0])
-        return {
+        return [{
             'name': name,
             'oname': movie.get('name'),
             'year': movie.get('year'),
-        }
+        }]

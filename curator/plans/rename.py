@@ -15,9 +15,17 @@ class RenamePlan(Plan):
         ]
 
 class RenameTask(Task):
-    def __init__(self, input, output, source):
-        super().__init__([input], [output])
+    def __init__(self, input, name, source, alternatives=[]):
+        super().__init__([input])
+        self.update_output(name)
         self.source = source
+        self.alternatives = alternatives
+
+    def update_output(self, name):
+        input = self.inputs[0]
+        output_path = os.path.join(os.path.dirname(input.path), name)
+        output_media = Media(output_path, Media.TYPE_FILE)
+        self.outputs = [output_media]
 
     def view(self):
         name_input = self.inputs[0].name
@@ -53,7 +61,8 @@ def plan_rename(media, format, db=None):
         dbid = None
         oname = None
         source = "analysis"
-        if db and (entry := db.query(name, year)):
+        if db and (entries := db.query(name, year)):
+            entry = entries[0]
             name = entry.get('name')
             year = entry.get('year')
             dbid = entry.get('dbid')
@@ -84,10 +93,7 @@ def plan_rename(media, format, db=None):
             ''.join(map(lambda t: f'[{t}] ', tags)))
         root, ext = os.path.splitext(filename)
         filename = root.strip() + ext
-
         if filename != m.name:
-            output_path = os.path.join(os.path.dirname(m.path), filename)
-            output_media = Media(output_path, Media.TYPE_FILE)
-            task = RenameTask(m, output_media, source)
+            task = RenameTask(m, filename, source)
             plan.add_task(task)
     return plan
