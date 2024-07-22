@@ -5,6 +5,7 @@ import io
 import logging
 import math
 import os
+import re
 
 import arrow
 import milli
@@ -99,9 +100,8 @@ class ImdbDatabase(Database):
                 f.write(r.content)
 
         # Parse compressed CSV dataset
-        with open(cache_path, 'rb') as f:
-            data = gzip.decompress(f.read())
-        text = data.decode('utf-8')
+        with gzip.open(cache_path) as gz:
+            text = gz.read().decode('utf-8')
         return csv.DictReader(io.StringIO(text), delimiter='\t', quoting=csv.QUOTE_NONE)
 
     def query(self, name, year=None):
@@ -132,3 +132,22 @@ class ImdbDatabase(Database):
             'dbid': 'imdbid-' + movie.get('id'),
         } for movie in sorted(movies, key=lambda m: m['score'], reverse=True)][:10]
         return movies
+
+    def query_id(self, name):
+        match = re.search(r'tt\d{7,9}', name)
+        if not match:
+            return None
+        id = match.group()
+        results = self.ix.search(name)
+        if not results:
+            return None
+        movies = self.ix.get_documents(results)
+        for movie in movies:
+            if movie.get('id') == id:
+                return [{
+                    'name': name,
+                    'oname': movie.get('name'),
+                    'year': movie.get('year'),
+                    'dbid': 'imdbid-' + movie.get('id'),
+                }]
+        return None
