@@ -70,10 +70,11 @@ CURATOR_USAGE = '''
 Usage: curator <command> [<args>]
 
 The following commands are supported:
-  link    Create symbolic links to files in another directory.
-  merge   Merge related files into a single container.
-  rename  Rename files according to their metadata.
-  tag     Update stream metadata/tags.
+  convert  Convert files to a different format.
+  link     Create symbolic links to files in another directory.
+  merge    Merge related files into a single container.
+  rename   Rename files according to their metadata.
+  tag      Update stream metadata/tags.
 '''.strip()
 
 def curator_convert(argv):
